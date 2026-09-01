@@ -1,0 +1,46 @@
+export interface Product {
+  id: string;
+  name: string;
+  slug: string;
+  published: boolean;
+  problem: string;
+  target: string;
+  description: string;
+  features: string[];
+  benefits: string[];
+}
+
+export type LeadStatus =
+  | "new" | "contacted" | "responded" | "needs-followup"
+  | "meeting" | "customer" | "lost";
+
+export interface Lead {
+  id: string;
+  company: string;
+  website: string;
+  industry: string;
+  location: string;
+  contact: string;
+  email: string;
+  productId: string;
+  status: LeadStatus;
+  problem: string;
+  reasoning: string;
+  lastContact: string;
+}
+
+export type CampaignStatus = "running" | "paused" | "completed";
+
+export interface Campaign {
+  id: string;
+  name: string;
+  productId: string;
+  target: string;
+  status: CampaignStatus;
+  found: number;
+  contacted: number;
+  responded: number;
+  interested: number;
+  meetings: number;
+  customers: number;
+}
