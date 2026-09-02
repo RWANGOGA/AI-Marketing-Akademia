@@ -7,20 +7,20 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5433:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-    networks: [akademia_net]
-    # no "ports:" — only reachable by other containers on akademia_net
+    networks: [ akademia_net ]
 
-  backend:
-    build: ./backend
-    container_name: akademia_backend
+  frontend:
+    build: ./frontend
+    container_name: akademia_frontend
     restart: unless-stopped
-    env_file: .env
-    depends_on: [db]
+    depends_on: [ db ]
     ports:
-      - "8000:8000"
-    networks: [akademia_net]
+      - "3003:3003"
+    networks: [ akademia_net ]
 
 networks:
   akademia_net:
