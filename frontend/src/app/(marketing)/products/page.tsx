@@ -1,15 +1,3 @@
-<<<<<<< HEAD
-import { apiFetch } from "@/lib/api";
-import type { Product } from "@/types";
-
-export default async function ProductsPage() {
-  // const products = await apiFetch<Product[]>("/products");
-  return (
-    <section className="px-8 py-16">
-      <h1 className="text-3xl font-semibold">Our products</h1>
-      <p className="mt-2 text-gray-600">TODO: render product cards, fetch from /api/products</p>
-    </section>
-=======
 import Link from "next/link";
 import { PRODUCTS as MarketingProducts } from "../../admin/_lib/mockData";
 import { query } from "@/lib/db";
@@ -27,19 +15,19 @@ export default async function ProductsOverviewPage() {
           <h1 style={{ fontSize: '36px' }}>One company, four practical AI tools.</h1>
         </div>
       </section>
-      
+
       <section>
         <div className="wrap">
           <div className="products-grid">
-            {dbProducts.map(p => {
+            {dbProducts.map((p: any) => {
               // Find the matching marketing product for SVGs and visual styles
-              const mProd = MarketingProducts.find(mp => mp.id === p.id) || MarketingProducts[0];
+              const mProd: any = MarketingProducts.find((mp: any) => mp.id === p.id) || MarketingProducts[0];
               const SvgComponent = mProd.svg;
-              
+
               return (
                 <div key={p.id} className="pcard full" style={{ '--accent': mProd.accent, '--accent-tint': mProd.tint, '--accent-dark': mProd.dark } as React.CSSProperties}>
                   <div className="pcard-visual">
-                    <SvgComponent />
+                    {SvgComponent && <SvgComponent />}
                   </div>
                   <div className="pcard-body">
                     <h3>{p.name}</h3>
@@ -59,6 +47,5 @@ export default async function ProductsOverviewPage() {
         </div>
       </section>
     </>
->>>>>>> frontend-setup
   );
 }

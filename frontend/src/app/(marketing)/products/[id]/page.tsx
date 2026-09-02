@@ -53,9 +53,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         <div className="wrap">
           <div className="sec-head"><h2>What it does</h2></div>
           <div className="cap-grid">
-            {mProd.capabilities.map((c, i) => (
+            {mProd.capabilities.map((c: any, i: number) => (
               <div key={i} className="cap-card">
-                <div className="ic">{ICONS[c.icon]}</div>
+                <div className="ic">{(ICONS as any)[c.icon]}</div>
                 <h4>{c.title}</h4>
                 <p>{c.body}</p>
               </div>

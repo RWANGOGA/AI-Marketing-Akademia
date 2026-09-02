@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PRODUCTS, ICONS } from "./_lib/marketingData";
+import { PRODUCTS, ICONS } from "../admin/_lib/mockData";
 
 export default function HomePage() {
   return (
@@ -12,11 +12,11 @@ export default function HomePage() {
             <Link href="/contact" className="btn btn-secondary btn-lg">Book a demo</Link>
           </div>
           <div className="dock">
-            {PRODUCTS.map(p => {
+            {PRODUCTS.map((p: any) => {
               const SvgComponent = p.svg;
               return (
                 <Link key={p.id} href={`/products/${p.id}`} className="dock-tile" style={{ '--tile-accent': p.accent, '--tile-tint': p.tint } as React.CSSProperties}>
-                  <div className="dock-icon">{ICONS[p.icon]}</div>
+                  <div className="dock-icon">{(ICONS as any)[p.icon]}</div>
                   <div className="t-name">{p.name}</div>
                   <div className="t-go">Learn more</div>
                 </Link>
@@ -56,12 +56,12 @@ export default function HomePage() {
             <p>Four tools, four different jobs. See what each one actually does.</p>
           </div>
           <div className="products-grid">
-            {PRODUCTS.map(p => {
+            {PRODUCTS.map((p: any) => {
               const SvgComponent = p.svg;
               return (
                 <div key={p.id} className="pcard" style={{ '--accent': p.accent, '--accent-tint': p.tint, '--accent-dark': p.dark } as React.CSSProperties}>
                   <div className="pcard-visual">
-                    <SvgComponent />
+                    {SvgComponent && <SvgComponent />}
                   </div>
                   <div className="pcard-body">
                     <h3>{p.name}</h3>

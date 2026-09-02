@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-export default function ContactPage() {
-  return (
-    <section className="px-8 py-16">
-      <h1 className="text-3xl font-semibold">Contact us</h1>
-      <p className="mt-2 text-gray-600">TODO: port contact form, POST to /api/leads or /api/contact</p>
-    </section>
-=======
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
@@ -14,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 function ContactForm() {
   const searchParams = useSearchParams();
   const preset = searchParams.get('preset');
-  
+
   const [showConfirm, setShowConfirm] = useState(false);
   const [product, setProduct] = useState(preset || "General Enquiry");
 
@@ -39,7 +31,7 @@ function ContactForm() {
         <h3>Message sent</h3>
         <p>Thanks someone from AI Marketer will get back to you shortly.</p>
       </div>
-      
+
       <form onSubmit={handleSubmit}>
         <div className="field-row">
           <div className="field">
@@ -83,7 +75,7 @@ export default function ContactPage() {
           <h1 style={{ fontSize: '36px' }}>Tell us what you’re trying to solve.</h1>
         </div>
       </section>
-      
+
       <section className="section-tight">
         <div className="wrap">
           <div className="contact-grid">
@@ -92,7 +84,7 @@ export default function ContactPage() {
                 <ContactForm />
               </Suspense>
             </div>
-            
+
             <div className="contact-info">
               <h3>Other ways to reach us</h3>
               <div className="ci-row">
@@ -116,6 +108,5 @@ export default function ContactPage() {
         </div>
       </section>
     </>
->>>>>>> frontend-setup
   );
 }
