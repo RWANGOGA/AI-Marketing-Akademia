@@ -1,5 +1,4 @@
-from sqlalchemy import Boolean, String, Text
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy import Boolean, JSON, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -15,5 +14,5 @@ class Product(Base):
     problem: Mapped[str] = mapped_column(Text)
     target: Mapped[str] = mapped_column(Text)
     description: Mapped[str] = mapped_column(Text)
-    features: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
-    benefits: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
+    features: Mapped[list[str]] = mapped_column(JSON, default=list)
+    benefits: Mapped[list[str]] = mapped_column(JSON, default=list)

@@ -31,3 +31,17 @@ async def create_product(payload: ProductCreate, db: AsyncSession = Depends(get_
     await db.commit()
     await db.refresh(product)
     return product
+
+
+@router.patch("/{slug}", response_model=ProductOut)
+async def update_product(slug: str, payload: dict, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Product).where(Product.slug == slug))
+    product = result.scalar_one_or_none()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    for key, value in payload.items():
+        if hasattr(product, key):
+            setattr(product, key, value)
+    await db.commit()
+    await db.refresh(product)
+    return product

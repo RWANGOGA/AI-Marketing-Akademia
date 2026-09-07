@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -34,7 +34,7 @@ async def create_lead(payload: LeadCreate, db: AsyncSession = Depends(get_db)):
 
 
 @router.patch("/{lead_id}/status", response_model=LeadOut)
-async def update_lead_status(lead_id: str, status: str, db: AsyncSession = Depends(get_db)):
+async def update_lead_status(lead_id: str, status: str = Body(..., embed=True), db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Lead).where(Lead.id == lead_id))
     lead = result.scalar_one_or_none()
     if not lead:

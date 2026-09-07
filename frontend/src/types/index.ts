@@ -22,11 +22,11 @@ export interface Lead {
   location: string;
   contact: string;
   email: string;
-  productId: string;
+  product_id: string;
   status: LeadStatus;
   problem: string;
   reasoning: string;
-  lastContact: string;
+  last_contact: string;
 }
 
 export type CampaignStatus = "running" | "paused" | "completed";
@@ -34,7 +34,7 @@ export type CampaignStatus = "running" | "paused" | "completed";
 export interface Campaign {
   id: string;
   name: string;
-  productId: string;
+  product_id: string;
   target: string;
   status: CampaignStatus;
   found: number;
