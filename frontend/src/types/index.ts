@@ -8,6 +8,11 @@ export interface Product {
   description: string;
   features: string[];
   benefits: string[];
+  capabilities: Array<{
+    icon: string;
+    title: string;
+    body: string;
+  }>;
 }
 
 export type LeadStatus =

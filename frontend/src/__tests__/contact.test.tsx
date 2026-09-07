@@ -2,6 +2,15 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ContactPage from '@/app/(marketing)/contact/page';
 
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => ({
+    get: () => null,
+  }),
+  useRouter: () => ({
+    push: jest.fn(),
+  }),
+}));
+
 global.fetch = jest.fn();
 
 describe('ContactPage', () => {

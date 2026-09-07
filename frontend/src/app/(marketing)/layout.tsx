@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import "./marketing.css";
 import { Header } from "./_components/Header";
 import { Footer } from "./_components/Footer";
 

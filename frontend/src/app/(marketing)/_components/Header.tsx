@@ -3,37 +3,41 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { ICONS } from "../../admin/_lib/mockData";
 
-export function Header() {
+function NavLinks({ onNavigate }: { onNavigate: () => void }) {
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
-
+  
   const isActive = (path: string) => {
     if (path === '/' && pathname === '/') return true;
     if (path !== '/' && pathname.startsWith(path)) return true;
     return false;
   };
 
-  const NavLinks = () => (
+  return (
     <>
-      <Link href="/" className={isActive('/') ? 'active' : ''} onClick={() => setMobileOpen(false)}>Home</Link>
-      <Link href="/products" className={isActive('/products') ? 'active' : ''} onClick={() => setMobileOpen(false)}>Products</Link>
-      <Link href="/news" className={isActive('/news') ? 'active' : ''} onClick={() => setMobileOpen(false)}>News</Link>
-      <Link href="/about" className={isActive('/about') ? 'active' : ''} onClick={() => setMobileOpen(false)}>About</Link>
-      <Link href="/contact" className={isActive('/contact') ? 'active' : ''} onClick={() => setMobileOpen(false)}>Contact</Link>
+      <Link href="/" className={isActive('/') ? 'active' : ''} onClick={onNavigate}>Home</Link>
+      <Link href="/products" className={isActive('/products') ? 'active' : ''} onClick={onNavigate}>Products</Link>
+      <Link href="/news" className={isActive('/news') ? 'active' : ''} onClick={onNavigate}>News</Link>
+      <Link href="/about" className={isActive('/about') ? 'active' : ''} onClick={onNavigate}>About</Link>
+      <Link href="/contact" className={isActive('/contact') ? 'active' : ''} onClick={onNavigate}>Contact</Link>
     </>
   );
+}
+
+export function Header() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const closeMobile = () => setMobileOpen(false);
 
   return (
     <header>
       <div className="hd-inner">
-        <Link href="/" className="logo" onClick={() => setMobileOpen(false)}>
+        <Link href="/" className="logo" onClick={closeMobile}>
           <img src="/favicon.svg" className="mark" alt="Logo" />
           AI Marketer
         </Link>
         <nav className="mainnav">
-          <NavLinks />
+          <NavLinks onNavigate={closeMobile} />
         </nav>
         <div className="hd-right">
           <Link href="/contact" className="btn btn-secondary" style={{ borderColor: 'transparent' }}>Contact sales</Link>
@@ -48,7 +52,7 @@ export function Header() {
         </div>
       </div>
       <div className={`mobile-menu ${mobileOpen ? 'open' : ''}`}>
-        <NavLinks />
+        <NavLinks onNavigate={closeMobile} />
         <Link href="/contact" className="btn btn-secondary" style={{ borderColor: 'transparent' }}>Contact sales</Link>
         <Link href="/products" className="btn btn-primary">Get started free</Link>
       </div>

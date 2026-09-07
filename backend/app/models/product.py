@@ -16,3 +16,4 @@ class Product(Base):
     description: Mapped[str] = mapped_column(Text)
     features: Mapped[list[str]] = mapped_column(JSON, default=list)
     benefits: Mapped[list[str]] = mapped_column(JSON, default=list)
+    capabilities: Mapped[list[dict]] = mapped_column(JSON, default=list)

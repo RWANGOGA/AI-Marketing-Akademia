@@ -1,7 +1,18 @@
 import Link from "next/link";
-import { PRODUCTS, ICONS } from "../admin/_lib/mockData";
+import { apiFetch } from "@/lib/api";
+import type { Product } from "@/types";
+import { PRODUCTS, getProductBySlug, getProductByName } from "./_lib/marketing-config";
 
-export default function HomePage() {
+export default async function HomePage() {
+  let apiProducts: Product[] = [];
+  try {
+    apiProducts = await apiFetch<Product[]>("/products");
+  } catch {
+    apiProducts = [];
+  }
+
+  const publishedProducts = apiProducts.filter((p) => p.published);
+
   return (
     <>
       <section className="hero hero-left">
@@ -12,16 +23,13 @@ export default function HomePage() {
             <Link href="/contact" className="btn btn-secondary btn-lg">Book a demo</Link>
           </div>
           <div className="dock">
-            {PRODUCTS.map((p: any) => {
-              const SvgComponent = p.svg;
-              return (
-                <Link key={p.id} href={`/products/${p.id}`} className="dock-tile" style={{ '--tile-accent': p.accent, '--tile-tint': p.tint } as React.CSSProperties}>
-                  <div className="dock-icon">{(ICONS as any)[p.icon]}</div>
-                  <div className="t-name">{p.name}</div>
-                  <div className="t-go">Learn more</div>
-                </Link>
-              );
-            })}
+            {PRODUCTS.map((p) => (
+              <Link key={p.slug} href={`/products/${p.slug}`} className="dock-tile" style={{ '--tile-accent': p.accent, '--tile-tint': p.tint } as React.CSSProperties}>
+                <div className="dock-icon">{p.icon}</div>
+                <div className="t-name">{p.name}</div>
+                <div className="t-go">Learn more</div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
@@ -33,12 +41,12 @@ export default function HomePage() {
             <div className="why-item">
               <div className="num">01</div>
               <h3>Four products, one place to start</h3>
-              <p>You don’t need to evaluate ten different AI vendors. We represent four practical tools and can point you to the one that actually fits.</p>
+              <p>You don&apos;t need to evaluate ten different AI vendors. We represent four practical tools and can point you to the one that actually fits.</p>
             </div>
             <div className="why-item">
               <div className="num">02</div>
               <h3>Plain explanations, not sales pitches</h3>
-              <p>Ask what a product does and we’ll tell you clearly including when it isn’t the right fit for what you need.</p>
+              <p>Ask what a product does and we&apos;ll tell you clearly including when it isn&apos;t the right fit for what you need.</p>
             </div>
             <div className="why-item">
               <div className="num">03</div>
@@ -56,17 +64,31 @@ export default function HomePage() {
             <p>Four tools, four different jobs. See what each one actually does.</p>
           </div>
           <div className="products-grid">
-            {PRODUCTS.map((p: any) => {
-              const SvgComponent = p.svg;
+            {publishedProducts.length === 0 && (
+              <div className="pcard full" style={{ gridColumn: '1 / -1' }}>
+                <div className="pcard-body">
+                  <h3>No products published yet</h3>
+                  <p className="desc">Check back soon for our latest AI tools.</p>
+                </div>
+              </div>
+            )}
+            {publishedProducts.map((p) => {
+              const m = getProductBySlug(p.slug) || getProductByName(p.name);
+              const SvgComponent = m?.visual;
+              const accent = m?.accent || '#050038';
+              const tint = m?.tint || '#F5F5F7';
+              const dark = m?.dark || '#000000';
+              const desc = p.description || m?.description || '';
+
               return (
-                <div key={p.id} className="pcard" style={{ '--accent': p.accent, '--accent-tint': p.tint, '--accent-dark': p.dark } as React.CSSProperties}>
+                <div key={p.id || p.slug} className="pcard" style={{ '--accent': accent, '--accent-tint': tint, '--accent-dark': dark } as React.CSSProperties}>
                   <div className="pcard-visual">
-                    {SvgComponent && <SvgComponent />}
+                    {SvgComponent}
                   </div>
                   <div className="pcard-body">
                     <h3>{p.name}</h3>
-                    <p className="desc">{p.desc}</p>
-                    <Link href={`/products/${p.id}`} className="learn">Learn more</Link>
+                    <p className="desc">{desc}</p>
+                    <Link href={`/products/${p.slug}`} className="learn">Learn more</Link>
                   </div>
                 </div>
               );

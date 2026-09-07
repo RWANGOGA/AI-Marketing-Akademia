@@ -1,5 +1,7 @@
 import { apiFetch } from "@/lib/api";
 import Link from "next/link";
+import { notFound } from "next/navigation";
+import { getProductBySlug, getProductByName } from "../../_lib/marketing-config";
 import type { Product } from "@/types";
 
 export default async function ProductDetailPage({
@@ -8,95 +10,109 @@ export default async function ProductDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = await apiFetch<Product>(`/products/${slug}`);
-
-  if (!product) {
-    return (
-      <div className="mx-auto max-w-3xl px-6 py-16 text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Product not found</h1>
-        <p className="mt-3 text-gray-600">
-          The product you are looking for does not exist.
-        </p>
-        <Link
-          href="/products"
-          className="mt-6 inline-block rounded-lg bg-gray-900 px-6 py-2 text-sm font-semibold text-white"
-        >
-          Back to products
-        </Link>
-      </div>
-    );
+  let product: Product | null = null;
+  try {
+    product = await apiFetch<Product>(`/products/${slug}`);
+  } catch {
+    notFound();
   }
 
+  if (!product) {
+    notFound();
+  }
+
+  const m = getProductBySlug(product.slug) || getProductByName(product.name);
+  const tint = m?.tint || '#F5F5F7';
+  const dark = m?.dark || '#000000';
+  const visual = m?.visual;
+  const gallery = m?.gallery;
+  const showGallery = ['dojo', 'world'].includes(product.slug);
+
   return (
-    <div className="mx-auto max-w-4xl px-6 py-16">
-      <Link
-        href="/products"
-        className="text-sm font-medium text-gray-500 hover:text-gray-900"
-      >
-        ← Back to products
-      </Link>
+    <>
+      <section className="pd-hero">
+        <div className="wrap">
+          <div className="pd-hero-grid">
+            <div>
+              <h1>{product.name}</h1>
+              <p className="pd-tagline">{product.description}</p>
+              <p className="pd-desc">{product.problem}</p>
+              <div className="hero-cta">
+                <Link href="/contact" className="btn btn-primary btn-lg">Get started free</Link>
+                <Link href="/contact" className="btn btn-secondary btn-lg">Book a demo</Link>
+              </div>
+            </div>
+            <div className="pd-visual" style={{ background: tint }}>
+              {visual}
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <div className="mt-8">
-        <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
-        <p className="mt-4 text-lg text-gray-600">{product.description}</p>
-      </div>
-
-      <div className="mt-10 space-y-8">
-        <section>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500">
-            The problem
-          </h2>
-          <p className="mt-2 text-gray-700">{product.problem}</p>
-        </section>
-
-        <section>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500">
-            Who it&apos;s for
-          </h2>
-          <p className="mt-2 text-gray-700">{product.target}</p>
-        </section>
-
-        {product.features.length > 0 && (
-          <section>
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500">
-              Features
-            </h2>
-            <ul className="mt-3 list-disc space-y-1 pl-5 text-gray-700">
-              {product.features.map((feature, index) => (
-                <li key={index}>{feature}</li>
+      {showGallery && gallery && (
+        <section className="section-tight">
+          <div className="wrap">
+            <div className="gallery-grid">
+              {gallery.map((item, i) => (
+                <div key={i} className="gallery-tile" style={{ background: tint }}>
+                  {item}
+                </div>
               ))}
-            </ul>
-          </section>
-        )}
-
-        {product.benefits.length > 0 && (
-          <section>
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500">
-              Benefits
-            </h2>
-            <ul className="mt-3 list-disc space-y-1 pl-5 text-gray-700">
-              {product.benefits.map((benefit, index) => (
-                <li key={index}>{benefit}</li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        <section className="rounded-2xl border border-gray-200 bg-gray-50 p-8">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Interested in this product?
-          </h2>
-          <p className="mt-2 text-gray-600">
-            Let&apos;s talk about how {product.name} can help your business.
-          </p>
-          <Link
-            href="/contact"
-            className="mt-4 inline-flex rounded-lg bg-gray-900 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gray-800"
-          >
-            Contact us about this product
-          </Link>
+            </div>
+          </div>
         </section>
-      </div>
-    </div>
+      )}
+
+      {product.capabilities && product.capabilities.length > 0 && (
+        <section className="section-tight">
+          <div className="wrap">
+            <div className="sec-head">
+              <h2>Capabilities</h2>
+            </div>
+            <div className="cap-grid">
+              {product.capabilities.map((cap, i) => (
+                <div key={i} className="cap-card" style={{ '--accent-tint': tint, '--accent-dark': dark } as React.CSSProperties}>
+                  <div className="ic">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </div>
+                  <h4>{cap.title}</h4>
+                  <p>{cap.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      <section className="section-tight">
+        <div className="wrap">
+          <div className="who-row">
+            <div>
+              <h3>The problem</h3>
+              <p>{product.problem}</p>
+            </div>
+            <div>
+              <h3>Who it&apos;s for</h3>
+              <p>{product.target}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div className="wrap">
+          <div className="cta-band">
+            <div>
+              <h3>Want to talk about {product.name}?</h3>
+              <p>Tell us what you&apos;re trying to solve and we&apos;ll point you in the right direction.</p>
+            </div>
+            <Link href="/contact" className="btn btn-primary btn-lg">Contact us</Link>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }

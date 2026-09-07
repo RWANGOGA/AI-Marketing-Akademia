@@ -1,44 +1,68 @@
 import Link from "next/link";
-import { PRODUCTS as MarketingProducts } from "../../admin/_lib/mockData";
-import { query } from "@/lib/db";
+import { apiFetch } from "@/lib/api";
+import { getProductBySlug, getProductByName } from "../_lib/marketing-config";
+import type { Product } from "@/types";
 
 export const dynamic = 'force-dynamic';
 
 export default async function ProductsOverviewPage() {
-  const res = await query('SELECT * FROM products WHERE published = true ORDER BY created_at ASC');
-  const dbProducts = res.rows;
+  let products: Product[] = [];
+  try {
+    products = await apiFetch<Product[]>("/products");
+  } catch {
+    products = [];
+  }
+
+  const published = products.filter((p) => p.published);
 
   return (
     <>
       <section className="hero hero-left" style={{ paddingBottom: 0 }}>
         <div className="wrap">
-          <h1 style={{ fontSize: '36px' }}>One company, four practical AI tools.</h1>
+          <h1>One company, four practical AI tools.</h1>
         </div>
       </section>
 
       <section>
         <div className="wrap">
           <div className="products-grid">
-            {dbProducts.map((p: any) => {
-              // Find the matching marketing product for SVGs and visual styles
-              const mProd: any = MarketingProducts.find((mp: any) => mp.id === p.id) || MarketingProducts[0];
-              const SvgComponent = mProd.svg;
+            {published.length === 0 && (
+              <div className="pcard full" style={{ gridColumn: '1 / -1' }}>
+                <div className="pcard-body">
+                  <h3>No products published yet</h3>
+                  <p className="desc">Check back soon for our latest AI tools.</p>
+                </div>
+              </div>
+            )}
+            {published.map((p) => {
+              const m = getProductBySlug(p.slug) || getProductByName(p.name);
+              const SvgComponent = m?.visual;
+              const accent = m?.accent || '#050038';
+              const tint = m?.tint || '#F5F5F7';
+              const dark = m?.dark || '#000000';
+              const desc = p.description || m?.description || '';
 
               return (
-                <div key={p.id} className="pcard full" style={{ '--accent': mProd.accent, '--accent-tint': mProd.tint, '--accent-dark': mProd.dark } as React.CSSProperties}>
+                <div key={p.id} className="pcard full" style={{ '--accent': accent, '--accent-tint': tint, '--accent-dark': dark } as React.CSSProperties}>
                   <div className="pcard-visual">
-                    {SvgComponent && <SvgComponent />}
+                    {SvgComponent}
                   </div>
                   <div className="pcard-body">
                     <h3>{p.name}</h3>
-                    <p className="desc">{p.description}</p>
+                    <p className="desc">{desc}</p>
                     <div className="meta-row">
-                      <div><div className="k">Problem it solves</div>{p.problem}</div>
+                      <div>
+                        <div className="k">Problem it solves</div>
+                        {p.problem}
+                      </div>
                     </div>
                     <div className="meta-row">
-                      <div><div className="k">Who it’s for</div>{p.target}</div>
+                      <div>
+                        <div className="k">Who it&apos;s for</div>
+                        {p.target}
+                      </div>
                     </div>
-                    <Link href={`/products/${p.id}`} className="learn">Learn more</Link>
+                    <Link href={`/products/${p.slug}`} className="learn">Learn more</Link>
                   </div>
                 </div>
               );

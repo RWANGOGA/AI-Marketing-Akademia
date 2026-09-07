@@ -5,7 +5,7 @@ export default function AboutPage() {
     <>
       <section className="hero about-hero" style={{ paddingBottom: 0 }}>
         <div className="wrap">
-          <h1 style={{ fontSize: '36px' }}>We market four AI products we can actually explain.</h1>
+          <h1>We market four AI products we can actually explain.</h1>
         </div>
       </section>
 

@@ -12,26 +12,36 @@ describe('HomePage', () => {
   it('renders hero heading', async () => {
     apiFetch.mockResolvedValue([]);
     render(await HomePage());
-    expect(screen.getByText(/Practical AI products/i)).toBeInTheDocument();
+    expect(screen.getByText(/Four practical AI products/i)).toBeInTheDocument();
   });
 
-  it('renders product dock when products are published', async () => {
+  it('renders product dock with four products', async () => {
+    apiFetch.mockResolvedValue([]);
+    render(await HomePage());
+    expect(screen.getByText('AI Pod')).toBeInTheDocument();
+    expect(screen.getByText('AI Recruiter')).toBeInTheDocument();
+    expect(screen.getByText('AI Dojo')).toBeInTheDocument();
+    expect(screen.getByText('AI World')).toBeInTheDocument();
+  });
+
+  it('renders product cards when products are published', async () => {
     apiFetch.mockResolvedValue([
       {
         id: '1',
-        slug: 'port',
-        name: 'AI Port',
+        slug: 'pod',
+        name: 'AI Pod',
         published: true,
         problem: 'Scaling outreach',
         target: 'Growth teams',
-        description: 'AI Port helps',
+        description: 'AI Pod helps teams manage tasks and reporting in one place.',
         features: ['A'],
         benefits: ['B'],
       },
     ]);
     render(await HomePage());
-    expect(screen.getByText('AI Port')).toBeInTheDocument();
-    expect(screen.getByText('Scaling outreach')).toBeInTheDocument();
+    const podElements = screen.getAllByText('AI Pod');
+    expect(podElements.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('AI Pod helps teams manage tasks and reporting in one place.')).toBeInTheDocument();
   });
 
   it('shows empty state when no published products', async () => {

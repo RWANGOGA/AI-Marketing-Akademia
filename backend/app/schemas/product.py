@@ -10,6 +10,7 @@ class ProductBase(BaseModel):
     description: str
     features: list[str] = []
     benefits: list[str] = []
+    capabilities: list[dict] = []
 
 
 class ProductCreate(ProductBase):
