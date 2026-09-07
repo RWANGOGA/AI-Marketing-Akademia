@@ -1,21 +1,75 @@
-import { query } from "@/lib/db";
-import Link from "next/link";
+import { apiFetch } from "@/lib/api";
+import type { Lead, LeadStatus } from "@/types";
 
-export const dynamic = 'force-dynamic';
+const statusStyles: Record<LeadStatus, string> = {
+  new: "pill-new",
+  contacted: "pill-contacted",
+  responded: "pill-responded",
+  "needs-followup": "pill-followup",
+  meeting: "pill-meeting",
+  customer: "pill-customer",
+  lost: "pill-lost",
+};
+
+const statusLabels: Record<LeadStatus, string> = {
+  new: "New",
+  contacted: "Contacted",
+  responded: "Responded",
+  "needs-followup": "Needs Follow-up",
+  meeting: "Meeting",
+  customer: "Customer",
+  lost: "Lost",
+};
+
+type DashboardSummary = {
+  new: number;
+  contacted: number;
+  responded: number;
+  needs_followup: number;
+  meetings: number;
+  customers: number;
+  lost: number;
+};
 
 export default async function DashboardPage() {
-  const leadsRes = await query('SELECT * FROM leads');
-  const automationsRes = await query('SELECT * FROM automations LIMIT 4');
+  let summary: DashboardSummary = {
+    new: 0,
+    contacted: 0,
+    responded: 0,
+    needs_followup: 0,
+    meetings: 0,
+    customers: 0,
+    lost: 0,
+  };
 
-  const LEADS = leadsRes.rows;
-  const AUTOMATIONS = automationsRes.rows;
+  let leads: Lead[] = [];
+  let campaigns: { status: string }[] = [];
 
-  const newLeads = LEADS.filter(l => l.status === 'new').length;
-  const contacted = LEADS.filter(l => ['contacted', 'responded', 'meeting', 'customer', 'needs-followup'].includes(l.status)).length;
-  const responded = LEADS.filter(l => ['responded', 'meeting', 'customer'].includes(l.status)).length;
-  const meetings = LEADS.filter(l => ['meeting', 'customer'].includes(l.status)).length;
-  const customers = LEADS.filter(l => l.status === 'customer').length;
-  const needsAttention = LEADS.filter(l => l.status === 'needs-followup' || (l.status === 'new' && !l.pitch_approved));
+  try {
+    summary = await apiFetch<DashboardSummary>("/dashboard/summary");
+  } catch {
+    // use empty defaults on error
+  }
+
+  try {
+    leads = await apiFetch<Lead[]>("/leads");
+  } catch {
+    // empty on error
+  }
+
+  try {
+    campaigns = await apiFetch<{ status: string }[]>("/campaigns");
+  } catch {
+    // empty on error
+  }
+
+  const needsAttention = leads.filter(
+    (l) => l.status === "needs-followup" || l.status === "new"
+  );
+
+  const runningAutomations = campaigns.filter((c) => c.status === "running").length;
+  const pausedAutomations = campaigns.filter((c) => c.status === "paused").length;
+  const completedAutomations = campaigns.filter((c) => c.status === "completed").length;
 
   const statCard = (label: string, num: number, delta: string) => (
     <div className="card stat-card">
@@ -38,76 +92,76 @@ export default async function DashboardPage() {
     <div className="view">
       <div className="view-header">
         <div>
-          <h1>Good morning, Jamila.</h1>
-          <p>Here's what's happening across marketing right now.</p>
+          <h1>Dashboard</h1>
+          <p>Here&apos;s what&apos;s happening across marketing right now.</p>
         </div>
-        <Link href="/admin/leads?discovery=1" className="btn btn-primary">+ Start lead discovery</Link>
       </div>
 
       <div className="stat-row">
-        {statCard('New leads', newLeads, 'discovered this week')}
-        {statCard('Contacted', contacted, 'have received outreach')}
-        {statCard('Responded', responded, 'replied to a message')}
-        {statCard('Meetings', meetings, 'booked or held')}
-        {statCard('Customers won', customers, 'converted this quarter')}
+        {statCard("New leads", summary.new, "discovered this week")}
+        {statCard("Contacted", summary.contacted, "have received outreach")}
+        {statCard("Responded", summary.responded, "replied to a message")}
+        {statCard("Meetings", summary.meetings, "booked or held")}
+        {statCard("Customers won", summary.customers, "converted this quarter")}
       </div>
 
       <div className="card pipeline">
-        {pipelineStage('38', 'Discovery')}
+        {pipelineStage(String(summary.new), "Discovery")}
         {pipelineLine()}
-        {pipelineStage('26', 'Analysis')}
+        {pipelineStage(String(summary.contacted), "Analysis")}
         {pipelineLine()}
-        {pipelineStage('19', 'Pitch drafted')}
+        {pipelineStage(String(summary.responded), "Pitch drafted")}
         {pipelineLine()}
-        {pipelineStage('15', 'Approved')}
+        {pipelineStage(String(summary.meetings), "Approved")}
         {pipelineLine()}
-        {pipelineStage('15', 'Sent')}
+        {pipelineStage(String(summary.customers), "Sent")}
         {pipelineLine()}
-        {pipelineStage(String(responded), 'Responded')}
+        {pipelineStage(String(summary.responded), "Responded")}
         {pipelineLine()}
-        {pipelineStage(String(meetings), 'Meeting')}
+        {pipelineStage(String(summary.meetings), "Meeting")}
         {pipelineLine()}
-        {pipelineStage(String(customers), 'Customer')}
+        {pipelineStage(String(summary.customers), "Customer")}
       </div>
 
       <div className="dash-grid">
         <div className="card pad">
           <div className="section-title">
             Needs your attention
-            <Link href="/admin/leads" className="btn btn-ghost btn-sm">View all leads →</Link>
           </div>
-          {needsAttention.length > 0 ? needsAttention.map(l => (
+          {needsAttention.length > 0 ? needsAttention.map((l) => (
             <div className="attn-row" key={l.id}>
               <div className="attn-dot"></div>
               <div>
                 <div className="co">{l.company}</div>
                 <div className="why">
-                  {l.status === 'needs-followup' ? `No response in ${l.last_contact} — ready for follow-up` : 'New lead — pitch not yet generated'}
+                  {l.status === "needs-followup"
+                    ? `No response in ${l.last_contact || "awhile"} — ready for follow-up`
+                    : "New lead — pitch not yet generated"}
                 </div>
               </div>
-              <Link href={`/admin/leads/${l.id}`} className="btn btn-sm go">Open</Link>
             </div>
-          )) : <div className="empty">Nothing needs attention right now.</div>}
+          )) : (
+            <div className="empty">Nothing needs attention right now.</div>
+          )}
         </div>
 
         <div className="card pad">
-          <div className="section-title">Recent activity</div>
-          <div className="feed-row"><div className="t mono">08:12</div><div>Email to <b>Tembo Retail Group</b> got a reply.</div></div>
-          <div className="feed-row"><div className="t mono">07:40</div><div>Lead Discovery found <b>6 new companies</b> for Logistics — East Africa.</div></div>
-          <div className="feed-row"><div className="t mono">07:00</div><div>Follow-up check flagged <b>3 leads</b> with no response.</div></div>
-          <div className="feed-row"><div className="t mono">Yest</div><div>Pitch approved and sent to <b>Metro Builders Uganda</b>.</div></div>
-          <div className="feed-row"><div className="t mono">Yest</div><div>Lead Discovery — Retail KE <b>failed</b> (source site blocked requests).</div></div>
-        </div>
-      </div>
-
-      <div className="section-title" style={{ marginTop: '20px' }}>Automation status</div>
-      <div className="automation-strip">
-        {AUTOMATIONS.slice(0, 4).map(a => (
-          <div className="auto-chip" key={a.id}>
-            <div className="name">{a.name}</div>
-            <span className={`pill pill-${a.status} st`}>{a.status}</span>
+          <div className="section-title">Campaign status</div>
+          <div className="automation-strip">
+            <div className="auto-chip">
+              <div className="name">Running</div>
+              <span className="pill pill-running st">{runningAutomations}</span>
+            </div>
+            <div className="auto-chip">
+              <div className="name">Paused</div>
+              <span className="pill pill-stopped st">{pausedAutomations}</span>
+            </div>
+            <div className="auto-chip">
+              <div className="name">Completed</div>
+              <span className="pill pill-completed st">{completedAutomations}</span>
+            </div>
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );
