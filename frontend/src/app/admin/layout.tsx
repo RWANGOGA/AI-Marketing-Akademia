@@ -1,9 +1,7 @@
-"use client";
-
 import type { Metadata } from "next";
 import "./admin.css";
 import AdminSidebar from "./_components/Sidebar";
-import { AuthProvider, useAuth } from "./_components/auth-context";
+import { AuthProvider } from "./_components/auth-context";
 import RequireAuth from "./_components/RequireAuth";
 
 export const metadata: Metadata = {
