@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ProductsPage from '@/app/admin/products/page';
 
 jest.mock('@/lib/api', () => ({
+  apiFetchWithAuth: jest.fn(),
   apiFetch: jest.fn(),
 }));
 
@@ -10,16 +11,24 @@ jest.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: jest.fn() }),
 }));
 
-const { apiFetch } = require('@/lib/api') as { apiFetch: jest.Mock };
+jest.mock('@/app/admin/_components/auth-context', () => ({
+  useAuth: () => ({
+    token: 'mock-token',
+    user: { id: '1', email: 'admin@akademia.local', name: 'Admin' },
+    loading: false,
+  }),
+}));
+
+const { apiFetchWithAuth } = require('@/lib/api') as { apiFetchWithAuth: jest.Mock };
 
 describe('AdminProducts', () => {
   beforeEach(() => {
-    (apiFetch as jest.Mock).mockClear();
+    (apiFetchWithAuth as jest.Mock).mockClear();
     global.fetch = jest.fn();
   });
 
   it('renders products table with data', async () => {
-    (apiFetch as jest.Mock).mockResolvedValue([
+    (apiFetchWithAuth as jest.Mock).mockResolvedValue([
       {
         id: 'prod-1',
         name: 'AI Pod',
@@ -39,14 +48,15 @@ describe('AdminProducts', () => {
       },
     ]);
 
-    render(await ProductsPage());
-    expect(screen.getByText('Products')).toBeInTheDocument();
-    expect(screen.getByText('AI Pod')).toBeInTheDocument();
+    render(<ProductsPage />);
+    await waitFor(() => {
+      expect(screen.getByText('AI Pod')).toBeInTheDocument();
+    });
     expect(screen.getByText('Marketing complete')).toBeInTheDocument();
   });
 
   it('shows pending status and publish button for unpublished products', async () => {
-    (apiFetch as jest.Mock).mockResolvedValue([
+    (apiFetchWithAuth as jest.Mock).mockResolvedValue([
       {
         id: 'prod-2',
         name: 'AI World',
@@ -66,14 +76,15 @@ describe('AdminProducts', () => {
       },
     ]);
 
-    render(await ProductsPage());
-    const statusBadge = screen.getByText('pending');
-    expect(statusBadge).toBeInTheDocument();
+    render(<ProductsPage />);
+    await waitFor(() => {
+      expect(screen.getByText('pending')).toBeInTheDocument();
+    });
     expect(screen.getByText('Publish to Marketing')).toBeInTheDocument();
   });
 
   it('shows running status for queued products', async () => {
-    (apiFetch as jest.Mock).mockResolvedValue([
+    (apiFetchWithAuth as jest.Mock).mockResolvedValue([
       {
         id: 'prod-3',
         name: 'AI Dojo',
@@ -93,19 +104,23 @@ describe('AdminProducts', () => {
       },
     ]);
 
-    render(await ProductsPage());
-    expect(screen.getByText('Running...')).toBeInTheDocument();
+    render(<ProductsPage />);
+    await waitFor(() => {
+      expect(screen.getByText('Running...')).toBeInTheDocument();
+    });
   });
 
   it('shows empty state when no products', async () => {
-    (apiFetch as jest.Mock).mockResolvedValue([]);
+    (apiFetchWithAuth as jest.Mock).mockResolvedValue([]);
 
-    render(await ProductsPage());
-    expect(screen.getByText(/No products found/i)).toBeInTheDocument();
+    render(<ProductsPage />);
+    await waitFor(() => {
+      expect(screen.getByText(/No products found/i)).toBeInTheDocument();
+    });
   });
 
   it('triggers publish when Publish button is clicked', async () => {
-    (apiFetch as jest.Mock).mockResolvedValue([
+    (apiFetchWithAuth as jest.Mock).mockResolvedValue([
       {
         id: 'prod-4',
         name: 'AI Recruiter',
@@ -125,16 +140,17 @@ describe('AdminProducts', () => {
       },
     ]);
 
-    (global.fetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => ({}) });
+    const fetchMock = jest.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
+    window.fetch = fetchMock as any;
 
-    render(await ProductsPage());
+    render(<ProductsPage />);
 
-    const publishButton = screen.getByText('Publish to Marketing');
+    const publishButton = await screen.findByText('Publish to Marketing');
     fireEvent.click(publishButton);
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
-        'http://localhost:8000/api/products/recruiter/publish',
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining('/products/recruiter/publish'),
         expect.objectContaining({ method: 'POST' })
       );
     });

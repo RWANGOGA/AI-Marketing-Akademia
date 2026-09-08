@@ -2,12 +2,16 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import AsyncSessionLocal
+from app.core.database import AsyncSessionLocal, Base, engine
 from app.models.product import Product
 from app.models.email import Email
 from app.models.automation import Automation
 from app.models.content import Content
 from app.models.user import User
+from app.models.lead import Lead
+from app.models.campaign import Campaign
+from app.models.generated_content import GeneratedContent
+from app.models.publish_log import PublishLog
 from app.core.auth import hash_password
 
 
@@ -178,6 +182,77 @@ CONTENT = [
 ]
 
 
+LEADS = [
+    {
+        "company": "Kampala FreshFoods Ltd",
+        "website": "https://freshfoods.co.ug",
+        "industry": "Food & Beverage",
+        "location": "Kampala, Uganda",
+        "contact": "Grace Wabwire",
+        "email": "grace@freshfoods.co.ug",
+        "product_slug": "pod",
+        "status": "new",
+        "problem": "Manual inventory tracking across 3 warehouses",
+        "reasoning": "Kampala FreshFoods operates 3 distribution centers and is likely struggling with visibility into inventory levels and demand forecasting.",
+        "last_contact": "12 min ago",
+    },
+    {
+        "company": "Nile Logistics Group",
+        "website": "https://nilelogistics.com",
+        "industry": "Logistics",
+        "location": "Kampala, Uganda",
+        "contact": "Samuel Okello",
+        "email": "samuel@nilelogistics.com",
+        "product_slug": "pod",
+        "status": "contacted",
+        "problem": "Siloed progress data across 3 hubs",
+        "reasoning": "Nile Logistics has 3 hubs with manual reporting, causing delays in operational visibility for head office.",
+        "last_contact": "3 days ago",
+    },
+    {
+        "company": "Highland People Solutions",
+        "website": "https://highlandpeople.co.ke",
+        "industry": "HR & Recruitment",
+        "location": "Nairobi, Kenya",
+        "contact": "Dr. Yusuf Hassan",
+        "email": "yusuf@highlandpeople.co.ke",
+        "product_slug": "recruiter",
+        "status": "responded",
+        "problem": "Slow candidate shortlists",
+        "reasoning": "Highland People Solutions is experiencing slow turnaround on candidate shortlists due to manual screening at scale.",
+        "last_contact": "1 hour ago",
+    },
+]
+
+
+CAMPAIGNS = [
+    {
+        "name": "Kampala FreshFoods Expansion",
+        "product_slug": "pod",
+        "target": "Logistics & Retail",
+        "status": "running",
+        "found": 12,
+        "contacted": 8,
+        "responded": 5,
+        "interested": 3,
+        "meetings": 1,
+        "customers": 0,
+    },
+    {
+        "name": "Nile Logistics Q3 Outreach",
+        "product_slug": "pod",
+        "target": "3PL & Supply Chain",
+        "status": "completed",
+        "found": 24,
+        "contacted": 24,
+        "responded": 18,
+        "interested": 7,
+        "meetings": 5,
+        "customers": 2,
+    },
+]
+
+
 async def seed_products(db: AsyncSession) -> None:
     for product_data in PRODUCTS:
         result = await db.execute(select(Product).where(Product.slug == product_data["slug"]))
@@ -230,6 +305,55 @@ async def seed_content(db: AsyncSession) -> None:
     await db.commit()
 
 
+async def seed_leads(db: AsyncSession) -> None:
+    for lead_data in LEADS:
+        product_result = await db.execute(
+            select(Product).where(Product.slug == lead_data.pop("product_slug"))
+        )
+        product = product_result.scalar_one_or_none()
+        if not product:
+            continue
+
+        lead_data["id"] = str(uuid.uuid4())
+        lead_data["product_id"] = product.id
+
+        result = await db.execute(select(Lead).where(Lead.email == lead_data["email"]))
+        existing = result.scalar_one_or_none()
+        if existing:
+            for key, value in lead_data.items():
+                setattr(existing, key, value)
+        else:
+            lead = Lead(**lead_data)
+            db.add(lead)
+    await db.commit()
+
+
+async def seed_campaigns(db: AsyncSession) -> None:
+    for campaign_data in CAMPAIGNS:
+        product_slug = campaign_data.pop("product_slug")
+        product_result = await db.execute(
+            select(Product).where(Product.slug == product_slug)
+        )
+        product = product_result.scalar_one_or_none()
+        if not product:
+            continue
+
+        campaign_data["id"] = str(uuid.uuid4())
+        campaign_data["product_id"] = product.id
+
+        result = await db.execute(
+            select(Campaign).where(Campaign.name == campaign_data["name"])
+        )
+        existing = result.scalar_one_or_none()
+        if existing:
+            for key, value in campaign_data.items():
+                setattr(existing, key, value)
+        else:
+            campaign = Campaign(**campaign_data)
+            db.add(campaign)
+    await db.commit()
+
+
 async def seed_users(db: AsyncSession) -> None:
     admin_email = "admin@akademia.local"
     admin_password = "admin123"
@@ -250,10 +374,17 @@ async def seed_users(db: AsyncSession) -> None:
 
 if __name__ == "__main__":
     import asyncio
+    from sqlalchemy import text
 
     async def main() -> None:
+        async with engine.begin() as conn:
+            await conn.execute(text("DROP SCHEMA public CASCADE"))
+            await conn.execute(text("CREATE SCHEMA public"))
+            await conn.run_sync(Base.metadata.create_all)
         async with AsyncSessionLocal() as db:
             await seed_products(db)
+            await seed_leads(db)
+            await seed_campaigns(db)
             await seed_emails(db)
             await seed_automations(db)
             await seed_content(db)

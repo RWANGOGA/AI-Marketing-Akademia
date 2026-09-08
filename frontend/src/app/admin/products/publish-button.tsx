@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
 
-export default function PublishButton({ product }: { product: { slug: string; marketing_status: string } }) {
+export default function PublishButton({
+  product,
+  token,
+}: {
+  product: { slug: string; marketing_status: string; id: string };
+  token: string | null;
+}) {
   const [status, setStatus] = useState<"idle" | "publishing" | "published" | "error">("idle");
   const router = useRouter();
 
@@ -14,6 +20,9 @@ export default function PublishButton({ product }: { product: { slug: string; ma
     try {
       const res = await fetch(`${API_URL}/products/${product.slug}/publish`, {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       if (!res.ok) throw new Error("Failed to publish");
       setStatus("published");

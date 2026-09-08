@@ -10,3 +10,17 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   }
   return res.json();
 }
+
+export async function apiFetchWithAuth<T>(
+  path: string,
+  token: string | null,
+  init?: RequestInit,
+): Promise<T> {
+  return apiFetch<T>(path, {
+    ...init,
+    headers: {
+      ...init?.headers,
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}

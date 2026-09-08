@@ -1,5 +1,9 @@
-import { apiFetch } from "@/lib/api";
+"use client";
+
+import { useEffect, useState } from "react";
+import { apiFetchWithAuth } from "@/lib/api";
 import type { Email } from "@/types";
+import { useAuth } from "../_components/auth-context";
 
 const statusStyles: Record<string, string> = {
   draft: "bg-gray-100 text-gray-800",
@@ -10,13 +14,16 @@ const statusStyles: Record<string, string> = {
   responded: "bg-emerald-100 text-emerald-800",
 };
 
-export default async function EmailsPage() {
-  let emails: Email[] = [];
-  try {
-    emails = await apiFetch<Email[]>("/emails");
-  } catch {
-    // empty on error
-  }
+export default function EmailsPage() {
+  const { token } = useAuth();
+  const [emails, setEmails] = useState<Email[]>([]);
+
+  useEffect(() => {
+    if (!token) return;
+    apiFetchWithAuth<Email[]>("/emails", token)
+      .then(setEmails)
+      .catch(() => {});
+  }, [token]);
 
   return (
     <section className="space-y-6">

@@ -18,7 +18,7 @@ def get_client() -> AsyncGroq:
 async def call_groq(
     prompt: str,
     system_prompt: str = "You are a helpful assistant.",
-    model: str = "llama-3.3-8b-versatile",
+    model: str = "openai/gpt-oss-120b",
     temperature: float = 0.7,
     max_tokens: int = 1024,
 ) -> str:
@@ -38,7 +38,7 @@ async def call_groq(
 async def call_groq_json(
     prompt: str,
     system_prompt: str = "You are a helpful assistant. Return valid JSON only.",
-    model: str = "llama-3.3-8b-versatile",
+    model: str = "openai/gpt-oss-120b",
     temperature: float = 0.7,
     max_tokens: int = 2048,
 ) -> dict[str, Any]:

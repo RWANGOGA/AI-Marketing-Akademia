@@ -1,5 +1,9 @@
-import { apiFetch } from "@/lib/api";
+"use client";
+
+import { useEffect, useState } from "react";
+import { apiFetchWithAuth } from "@/lib/api";
 import type { Content } from "@/types";
+import { useAuth } from "../_components/auth-context";
 
 const statusStyles: Record<string, string> = {
   published: "bg-green-100 text-green-800",
@@ -7,13 +11,16 @@ const statusStyles: Record<string, string> = {
   scheduled: "bg-blue-100 text-blue-800",
 };
 
-export default async function ContentPage() {
-  let content: Content[] = [];
-  try {
-    content = await apiFetch<Content[]>("/content");
-  } catch {
-    // empty on error
-  }
+export default function ContentPage() {
+  const { token } = useAuth();
+  const [content, setContent] = useState<Content[]>([]);
+
+  useEffect(() => {
+    if (!token) return;
+    apiFetchWithAuth<Content[]>("/content", token)
+      .then(setContent)
+      .catch(() => {});
+  }, [token]);
 
   return (
     <section className="space-y-6">

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import EmailsPage from '@/app/admin/emails/page';
+import CampaignsPage from '@/app/admin/campaigns/page';
 
 jest.mock('@/lib/api', () => ({
   apiFetchWithAuth: jest.fn(),
@@ -17,37 +17,40 @@ jest.mock('@/app/admin/_components/auth-context', () => ({
 
 const { apiFetchWithAuth } = require('@/lib/api') as { apiFetchWithAuth: jest.Mock };
 
-describe('AdminEmails', () => {
+describe('AdminCampaigns', () => {
   beforeEach(() => {
     (apiFetchWithAuth as jest.Mock).mockClear();
   });
 
-  it('renders emails table with data', async () => {
+  it('renders campaigns table with data', async () => {
     (apiFetchWithAuth as jest.Mock).mockResolvedValue([
       {
-        id: 'E-501',
-        lead_name: 'Acme Corp',
-        subject: 'Quick intro to AI Pod',
-        product_name: 'AI Pod',
-        status: 'sent',
+        id: 'C1',
+        name: 'Q3 Lead Gen',
+        product_id: 'prod-1',
+        status: 'running',
+        found: 12,
+        contacted: 8,
+        responded: 5,
+        interested: 3,
+        meetings: 1,
+        customers: 0,
       },
     ]);
 
-    render(<EmailsPage />);
+    render(<CampaignsPage />);
     await waitFor(() => {
-      expect(screen.getByText('Acme Corp')).toBeInTheDocument();
+      expect(screen.getByText('Q3 Lead Gen')).toBeInTheDocument();
     });
-    expect(screen.getByText('Quick intro to AI Pod')).toBeInTheDocument();
-    expect(screen.getByText('AI Pod')).toBeInTheDocument();
-    expect(screen.getByText('sent')).toBeInTheDocument();
+    expect(screen.getByText('running')).toBeInTheDocument();
   });
 
-  it('shows empty state when no emails', async () => {
+  it('shows empty state when no campaigns', async () => {
     (apiFetchWithAuth as jest.Mock).mockResolvedValue([]);
 
-    render(<EmailsPage />);
+    render(<CampaignsPage />);
     await waitFor(() => {
-      expect(screen.getByText(/No emails found/i)).toBeInTheDocument();
+      expect(screen.getByText(/No campaigns found/i)).toBeInTheDocument();
     });
   });
 });

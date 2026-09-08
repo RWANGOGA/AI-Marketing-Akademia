@@ -1,6 +1,11 @@
-import { apiFetch } from "@/lib/api";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { apiFetchWithAuth } from "@/lib/api";
 import type { Lead, LeadStatus } from "@/types";
 import LeadStatusForm from "./lead-status-form";
+import { useAuth } from "../_components/auth-context";
 
 const statusStyles: Record<LeadStatus, string> = {
   new: "bg-blue-100 text-blue-800",
@@ -22,18 +27,21 @@ const statusLabels: Record<LeadStatus, string> = {
   lost: "Lost",
 };
 
-export default async function LeadDetailPage({
+export default function LeadDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }) {
-  const { id } = await params;
-  let lead: Lead | null = null;
-  try {
-    lead = await apiFetch<Lead>(`/leads/${id}`);
-  } catch {
-    // handle not found
-  }
+  const { id } = params;
+  const { token } = useAuth();
+  const [lead, setLead] = useState<Lead | null>(null);
+
+  useEffect(() => {
+    if (!token) return;
+    apiFetchWithAuth<Lead>(`/leads/${id}`, token)
+      .then(setLead)
+      .catch(() => {});
+  }, [token, id]);
 
   if (!lead) {
     return (
@@ -92,7 +100,7 @@ export default async function LeadDetailPage({
               <div className="font-medium text-slate-900">{lead.last_contact || "—"}</div>
             </div>
           </div>
-          <LeadStatusForm leadId={lead.id} currentStatus={lead.status} />
+          <LeadStatusForm leadId={lead.id} currentStatus={lead.status} token={token} />
         </div>
       </div>
 

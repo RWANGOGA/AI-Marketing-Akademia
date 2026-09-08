@@ -1,5 +1,9 @@
-import { apiFetch } from "@/lib/api";
+"use client";
+
+import { useEffect, useState } from "react";
+import { apiFetchWithAuth } from "@/lib/api";
 import type { Campaign } from "@/types";
+import { useAuth } from "../_components/auth-context";
 
 const stages = [
   { key: "found", label: "Found", color: "bg-slate-400" },
@@ -16,13 +20,16 @@ const statusStyles: Record<string, string> = {
   completed: "bg-slate-100 text-slate-800",
 };
 
-export default async function CampaignsPage() {
-  let campaigns: Campaign[] = [];
-  try {
-    campaigns = await apiFetch<Campaign[]>("/campaigns");
-  } catch {
-    // empty on error
-  }
+export default function CampaignsPage() {
+  const { token } = useAuth();
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+
+  useEffect(() => {
+    if (!token) return;
+    apiFetchWithAuth<Campaign[]>("/campaigns", token)
+      .then(setCampaigns)
+      .catch(() => {});
+  }, [token]);
 
   return (
     <section className="space-y-6">

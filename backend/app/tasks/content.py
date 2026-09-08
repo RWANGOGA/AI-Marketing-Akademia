@@ -4,16 +4,24 @@ import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.ai.groq_client import call_groq, call_groq_json
 from app.core.celery_app import celery_app
+from app.core.config import settings
 from app.core.database import AsyncSessionLocal
 from app.models.generated_content import GeneratedContent
 from app.models.product import Product
 from app.models.publish_log import PublishLog
 
 logger = logging.getLogger(__name__)
+
+
+def _get_async_session() -> AsyncSession:
+    """Create a fresh engine and session for use in Celery tasks."""
+    engine = create_async_engine(settings.database_url, echo=False)
+    session_maker = async_sessionmaker(engine, expire_on_commit=False)
+    return session_maker()
 
 
 SYSTEM_PROMPT_CONTENT = """
@@ -150,7 +158,7 @@ async def generate_content_for_product(product_id: str) -> dict:
     """
     Core async logic: generate AI marketing content for a product.
     """
-    async with AsyncSessionLocal() as db:
+    async with _get_async_session() as db:
         result = await db.execute(
             select(Product).where(Product.id == product_id)
         )
@@ -188,7 +196,7 @@ async def select_channels_for_product(prev_result: dict) -> dict:
     """
     Core async logic: select target channels for a product.
     """
-    async with AsyncSessionLocal() as db:
+    async with _get_async_session() as db:
         result = await db.execute(
             select(Product).where(Product.id == prev_result["product_id"])
         )
@@ -210,7 +218,7 @@ async def publish_content_to_channels(prev_result: dict) -> dict:
     """
     Core async logic: auto-publish generated content to selected channels.
     """
-    async with AsyncSessionLocal() as db:
+    async with _get_async_session() as db:
         result = await db.execute(
             select(Product).where(Product.id == prev_result["product_id"])
         )

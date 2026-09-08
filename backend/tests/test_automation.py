@@ -89,7 +89,7 @@ async def test_discover_leads_creates_leads(db_session, seed_product, seed_autom
     monkeypatch.setattr("app.tasks.automation.call_groq", mock_call_groq)
 
     monkeypatch.setattr(
-        "app.tasks.automation.AsyncSessionLocal",
+        "app.tasks.automation._get_async_session",
         lambda: db_session,
     )
 
@@ -119,7 +119,7 @@ async def test_discover_leads_product_not_found(db_session, monkeypatch):
     from app.tasks.automation import discover_leads_for_product
 
     monkeypatch.setattr(
-        "app.tasks.automation.AsyncSessionLocal",
+        "app.tasks.automation._get_async_session",
         lambda: db_session,
     )
 
@@ -133,7 +133,7 @@ async def test_discover_leads_updates_automation(db_session, seed_product, seed_
     monkeypatch.setattr("app.tasks.automation.call_groq", mock_call_groq)
 
     monkeypatch.setattr(
-        "app.tasks.automation.AsyncSessionLocal",
+        "app.tasks.automation._get_async_session",
         lambda: db_session,
     )
 

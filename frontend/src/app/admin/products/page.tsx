@@ -1,15 +1,22 @@
-import { apiFetch } from "@/lib/api";
+"use client";
+
+import { useEffect, useState } from "react";
+import { apiFetchWithAuth } from "@/lib/api";
 import type { Product } from "@/types";
 import ProductToggle from "./product-toggle";
 import PublishButton from "./publish-button";
+import { useAuth } from "../_components/auth-context";
 
-export default async function AdminProductsPage() {
-  let products: Product[] = [];
-  try {
-    products = await apiFetch<Product[]>("/products");
-  } catch {
-    // empty on error
-  }
+export default function AdminProductsPage() {
+  const { token } = useAuth();
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    if (!token) return;
+    apiFetchWithAuth<Product[]>("/products", token)
+      .then(setProducts)
+      .catch(() => {});
+  }, [token]);
 
   return (
     <section className="space-y-6">
@@ -38,7 +45,7 @@ export default async function AdminProductsPage() {
                   <td className="px-4 py-3 font-medium text-slate-900">{product.name}</td>
                   <td className="px-4 py-3 text-slate-700 font-mono text-xs">{product.slug}</td>
                   <td className="px-4 py-3">
-                    <ProductToggle product={product} />
+                    <ProductToggle product={product} token={token} />
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
@@ -55,7 +62,7 @@ export default async function AdminProductsPage() {
                     {product.description}
                   </td>
                   <td className="px-4 py-3">
-                    <PublishButton product={product} />
+                    <PublishButton product={product} token={token} />
                   </td>
                 </tr>
               ))}

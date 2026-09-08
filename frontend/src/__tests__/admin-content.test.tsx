@@ -1,20 +1,29 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import ContentPage from '@/app/admin/content/page';
 
 jest.mock('@/lib/api', () => ({
+  apiFetchWithAuth: jest.fn(),
   apiFetch: jest.fn(),
 }));
 
-const { apiFetch } = require('@/lib/api') as { apiFetch: jest.Mock };
+jest.mock('@/app/admin/_components/auth-context', () => ({
+  useAuth: () => ({
+    token: 'mock-token',
+    user: { id: '1', email: 'admin@akademia.local', name: 'Admin' },
+    loading: false,
+  }),
+}));
+
+const { apiFetchWithAuth } = require('@/lib/api') as { apiFetchWithAuth: jest.Mock };
 
 describe('AdminContent', () => {
   beforeEach(() => {
-    (apiFetch as jest.Mock).mockClear();
+    (apiFetchWithAuth as jest.Mock).mockClear();
   });
 
   it('renders content table with data', async () => {
-    (apiFetch as jest.Mock).mockResolvedValue([
+    (apiFetchWithAuth as jest.Mock).mockResolvedValue([
       {
         id: 'B1',
         type: 'blog_post',
@@ -27,16 +36,19 @@ describe('AdminContent', () => {
       },
     ]);
 
-    render(await ContentPage());
-    expect(screen.getByText('Content')).toBeInTheDocument();
-    expect(screen.getByText('How AI Recruiter cut screening time')).toBeInTheDocument();
+    render(<ContentPage />);
+    await waitFor(() => {
+      expect(screen.getByText('How AI Recruiter cut screening time')).toBeInTheDocument();
+    });
     expect(screen.getByText('Product update')).toBeInTheDocument();
   });
 
   it('shows empty state when no content', async () => {
-    (apiFetch as jest.Mock).mockResolvedValue([]);
+    (apiFetchWithAuth as jest.Mock).mockResolvedValue([]);
 
-    render(await ContentPage());
-    expect(screen.getByText(/No content found/i)).toBeInTheDocument();
+    render(<ContentPage />);
+    await waitFor(() => {
+      expect(screen.getByText(/No content found/i)).toBeInTheDocument();
+    });
   });
 });

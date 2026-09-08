@@ -1,5 +1,9 @@
-import { apiFetch } from "@/lib/api";
+"use client";
+
+import { useEffect, useState } from "react";
+import { apiFetchWithAuth } from "@/lib/api";
 import type { Lead } from "@/types";
+import { useAuth } from "../_components/auth-context";
 
 type DashboardSummary = {
   new: number;
@@ -11,8 +15,9 @@ type DashboardSummary = {
   lost: number;
 };
 
-export default async function DashboardPage() {
-  let summary: DashboardSummary = {
+export default function DashboardPage() {
+  const { token } = useAuth();
+  const [summary, setSummary] = useState<DashboardSummary>({
     new: 0,
     contacted: 0,
     responded: 0,
@@ -20,28 +25,25 @@ export default async function DashboardPage() {
     meetings: 0,
     customers: 0,
     lost: 0,
-  };
+  });
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [campaigns, setCampaigns] = useState<{ status: string }[]>([]);
 
-  let leads: Lead[] = [];
-  let campaigns: { status: string }[] = [];
+  useEffect(() => {
+    if (!token) return;
 
-  try {
-    summary = await apiFetch<DashboardSummary>("/dashboard/summary");
-  } catch {
-    // use empty defaults on error
-  }
+    apiFetchWithAuth<DashboardSummary>("/dashboard/summary", token)
+      .then(setSummary)
+      .catch(() => {});
 
-  try {
-    leads = await apiFetch<Lead[]>("/leads");
-  } catch {
-    // empty on error
-  }
+    apiFetchWithAuth<Lead[]>("/leads", token)
+      .then(setLeads)
+      .catch(() => {});
 
-  try {
-    campaigns = await apiFetch<{ status: string }[]>("/campaigns");
-  } catch {
-    // empty on error
-  }
+    apiFetchWithAuth<{ status: string }[]>("/campaigns", token)
+      .then(setCampaigns)
+      .catch(() => {});
+  }, [token]);
 
   const needsAttention = leads.filter(
     (l) => l.status === "needs-followup" || l.status === "new"

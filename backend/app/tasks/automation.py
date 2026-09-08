@@ -4,16 +4,24 @@ import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.ai.groq_client import call_groq, call_groq_json
 from app.core.celery_app import celery_app
+from app.core.config import settings
 from app.core.database import AsyncSessionLocal
 from app.models.automation import Automation
 from app.models.lead import Lead
 from app.models.product import Product
 
 logger = logging.getLogger(__name__)
+
+
+def _get_async_session() -> AsyncSession:
+    """Create a fresh engine and session for use in Celery tasks."""
+    engine = create_async_engine(settings.database_url, echo=False)
+    session_maker = async_sessionmaker(engine, expire_on_commit=False)
+    return session_maker()
 
 
 SYSTEM_PROMPT_DISCOVER = """
@@ -106,7 +114,7 @@ async def discover_leads_for_product(product_slug: str) -> dict:
 
     Can be called directly in tests. The Celery task wraps this with asyncio.run.
     """
-    async with AsyncSessionLocal() as db:
+    async with _get_async_session() as db:
         product_result = await db.execute(
             select(Product).where(Product.slug == product_slug)
         )

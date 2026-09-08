@@ -1,20 +1,29 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import DashboardPage from '@/app/admin/dashboard/page';
 
 jest.mock('@/lib/api', () => ({
+  apiFetchWithAuth: jest.fn(),
   apiFetch: jest.fn(),
 }));
 
-const { apiFetch } = require('@/lib/api') as { apiFetch: jest.Mock };
+jest.mock('@/app/admin/_components/auth-context', () => ({
+  useAuth: () => ({
+    token: 'mock-token',
+    user: { id: '1', email: 'admin@akademia.local', name: 'Admin' },
+    loading: false,
+  }),
+}));
+
+const { apiFetchWithAuth } = require('@/lib/api') as { apiFetchWithAuth: jest.Mock };
 
 describe('AdminDashboard', () => {
   beforeEach(() => {
-    (apiFetch as jest.Mock).mockClear();
+    (apiFetchWithAuth as jest.Mock).mockClear();
   });
 
   it('renders dashboard heading', async () => {
-    (apiFetch as jest.Mock)
+    (apiFetchWithAuth as jest.Mock)
       .mockResolvedValueOnce({
         new: 10,
         contacted: 5,
@@ -27,14 +36,16 @@ describe('AdminDashboard', () => {
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([]);
 
-    render(await DashboardPage());
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    render(<DashboardPage />);
+    await waitFor(() => {
+      expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    });
     expect(screen.getAllByText('New').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Customers').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders pipeline stages from summary', async () => {
-    (apiFetch as jest.Mock)
+    (apiFetchWithAuth as jest.Mock)
       .mockResolvedValueOnce({
         new: 10,
         contacted: 5,
@@ -47,14 +58,16 @@ describe('AdminDashboard', () => {
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([]);
 
-    render(await DashboardPage());
-    expect(screen.getAllByText('New').length).toBeGreaterThanOrEqual(1);
+    render(<DashboardPage />);
+    await waitFor(() => {
+      expect(screen.getAllByText('New').length).toBeGreaterThanOrEqual(1);
+    });
     expect(screen.getAllByText('Contacted').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Meetings').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows needs attention when leads exist', async () => {
-    (apiFetch as jest.Mock)
+    (apiFetchWithAuth as jest.Mock)
       .mockResolvedValueOnce({
         new: 10,
         contacted: 5,
@@ -80,8 +93,10 @@ describe('AdminDashboard', () => {
       ])
       .mockResolvedValueOnce([]);
 
-    render(await DashboardPage());
-    expect(screen.getByText('Acme Corp')).toBeInTheDocument();
+    render(<DashboardPage />);
+    await waitFor(() => {
+      expect(screen.getByText('Acme Corp')).toBeInTheDocument();
+    });
     expect(screen.getByText('Beta Ltd')).toBeInTheDocument();
   });
 });

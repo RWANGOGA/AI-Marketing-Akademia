@@ -101,7 +101,7 @@ async def mock_call_groq(prompt, system_prompt, **kwargs):
 @pytest.mark.anyio
 async def test_generate_content_for_product(db_session, seed_business_product, monkeypatch):
     monkeypatch.setattr("app.tasks.content.call_groq_json", mock_call_groq_json)
-    monkeypatch.setattr("app.tasks.content.AsyncSessionLocal", lambda: db_session)
+    monkeypatch.setattr("app.tasks.content._get_async_session", lambda: db_session)
 
     from app.tasks.content import generate_content_for_product
 
@@ -125,7 +125,7 @@ async def test_generate_content_for_product(db_session, seed_business_product, m
 
 @pytest.mark.anyio
 async def test_generate_content_product_not_found(db_session, monkeypatch):
-    monkeypatch.setattr("app.tasks.content.AsyncSessionLocal", lambda: db_session)
+    monkeypatch.setattr("app.tasks.content._get_async_session", lambda: db_session)
 
     from app.tasks.content import generate_content_for_product
 
@@ -135,7 +135,7 @@ async def test_generate_content_product_not_found(db_session, monkeypatch):
 
 @pytest.mark.anyio
 async def test_select_channels_business_rule(db_session, seed_business_product, monkeypatch):
-    monkeypatch.setattr("app.tasks.content.AsyncSessionLocal", lambda: db_session)
+    monkeypatch.setattr("app.tasks.content._get_async_session", lambda: db_session)
 
     from app.tasks.content import select_channels_for_product
 
@@ -153,7 +153,7 @@ async def test_select_channels_business_rule(db_session, seed_business_product, 
 @pytest.mark.anyio
 async def test_select_channels_ai_estimation(db_session, seed_general_product, monkeypatch):
     monkeypatch.setattr("app.tasks.content.call_groq_json", mock_call_groq_json)
-    monkeypatch.setattr("app.tasks.content.AsyncSessionLocal", lambda: db_session)
+    monkeypatch.setattr("app.tasks.content._get_async_session", lambda: db_session)
 
     from app.tasks.content import select_channels_for_product
 
@@ -172,7 +172,7 @@ async def test_select_channels_ai_estimation(db_session, seed_general_product, m
 
 @pytest.mark.anyio
 async def test_publish_content_creates_logs(db_session, seed_business_product, monkeypatch):
-    monkeypatch.setattr("app.tasks.content.AsyncSessionLocal", lambda: db_session)
+    monkeypatch.setattr("app.tasks.content._get_async_session", lambda: db_session)
 
     from app.tasks.content import publish_content_to_channels
 

@@ -1,6 +1,10 @@
-import { apiFetch } from "@/lib/api";
+"use client";
+
+import { useEffect, useState } from "react";
+import { apiFetchWithAuth } from "@/lib/api";
 import type { Lead, LeadStatus } from "@/types";
 import Link from "next/link";
+import { useAuth } from "../_components/auth-context";
 
 const statusStyles: Record<LeadStatus, string> = {
   new: "bg-blue-100 text-blue-800",
@@ -22,13 +26,16 @@ const statusLabels: Record<LeadStatus, string> = {
   lost: "Lost",
 };
 
-export default async function LeadsPage() {
-  let leads: Lead[] = [];
-  try {
-    leads = await apiFetch<Lead[]>("/leads");
-  } catch {
-    // empty on error
-  }
+export default function LeadsPage() {
+  const { token } = useAuth();
+  const [leads, setLeads] = useState<Lead[]>([]);
+
+  useEffect(() => {
+    if (!token) return;
+    apiFetchWithAuth<Lead[]>("/leads", token)
+      .then(setLeads)
+      .catch(() => {});
+  }, [token]);
 
   return (
     <section className="space-y-6">

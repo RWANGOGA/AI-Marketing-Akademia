@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import type { LeadStatus } from "@/types";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
+
 const statusOptions: LeadStatus[] = [
   "new",
   "contacted",
@@ -26,18 +28,23 @@ const statusLabels: Record<LeadStatus, string> = {
 export default function LeadStatusForm({
   leadId,
   currentStatus,
+  token,
 }: {
   leadId: string;
   currentStatus: LeadStatus;
+  token: string | null;
 }) {
   const router = useRouter();
 
   async function handleChange(formData: FormData) {
     const newStatus = formData.get("status") as LeadStatus;
     try {
-      const res = await fetch(`/api/leads/${leadId}/status`, {
+      const res = await fetch(`${API_URL}/leads/${leadId}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ status: newStatus }),
       });
       if (!res.ok) throw new Error("Failed to update status");

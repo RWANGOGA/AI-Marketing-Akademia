@@ -1,5 +1,9 @@
-import { apiFetch } from "@/lib/api";
+"use client";
+
+import { useEffect, useState } from "react";
+import { apiFetchWithAuth } from "@/lib/api";
 import type { Automation } from "@/types";
+import { useAuth } from "../_components/auth-context";
 
 const statusStyles: Record<string, string> = {
   running: "bg-green-100 text-green-800",
@@ -9,13 +13,16 @@ const statusStyles: Record<string, string> = {
   stopped: "bg-gray-100 text-gray-800",
 };
 
-export default async function AutomationPage() {
-  let automations: Automation[] = [];
-  try {
-    automations = await apiFetch<Automation[]>("/automations");
-  } catch {
-    // empty on error
-  }
+export default function AutomationPage() {
+  const { token } = useAuth();
+  const [automations, setAutomations] = useState<Automation[]>([]);
+
+  useEffect(() => {
+    if (!token) return;
+    apiFetchWithAuth<Automation[]>("/automations", token)
+      .then(setAutomations)
+      .catch(() => {});
+  }, [token]);
 
   return (
     <section className="space-y-6">
