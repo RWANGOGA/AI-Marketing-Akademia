@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PRODUCTS } from "../../admin/_lib/mockData";
+import { PRODUCTS } from "../_lib/marketing-config";
 
 export function Footer() {
   return (
@@ -22,7 +22,7 @@ export function Footer() {
           <div className="foot-col">
             <h4>Products</h4>
             {PRODUCTS.map(p => (
-              <Link key={p.id} href={`/products/${p.id}`}>{p.name}</Link>
+              <Link key={p.slug} href={`/products/${p.slug}`}>{p.name}</Link>
             ))}
           </div>
           <div className="foot-col">
