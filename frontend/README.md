@@ -304,12 +304,14 @@ docker compose down
 
 | Resource       | Path              | Methods                          |
 |----------------|-------------------|----------------------------------|
-| Products       | `/api/products`   | GET, POST, GET /{slug}, PATCH /{slug} |
+| Products       | `/api/products`   | GET, POST, GET /{slug}, PATCH /{slug}, POST /{slug}/publish |
 | Leads          | `/api/leads`      | GET, POST, GET /{id}, PATCH /{id}/status |
 | Campaigns      | `/api/campaigns`  | GET, POST, GET /{id}             |
 | Emails         | `/api/emails`     | GET, POST, GET /{id}             |
 | Automations    | `/api/automations`| GET, POST, GET /{id}, PATCH /{id} |
 | Content        | `/api/content`    | GET, POST, GET /{id}, PATCH /{id} |
+| Generated Content | `/api/generated-content` | GET |
+| Publish Logs   | `/api/publish-logs` | GET |
 | Dashboard      | `/api/dashboard`  | GET /summary                     |
 | Contact        | `/api/contact`    | POST (creates a lead)            |
 
@@ -330,16 +332,20 @@ Run from the `backend/` directory:
 pytest                # run all tests
 pytest -v             # verbose output
 pytest tests/test_api.py::test_emails_crud   # single test
+pytest tests/test_automation.py -v    # run automation tests
+pytest tests/test_content_pipeline.py -v  # run marketing pipeline tests
 ```
 
 Tests use an in-memory SQLite database (via `conftest.py` fixtures) — no
-Postgres required. The suite covers all resource CRUD endpoints plus auth
-register/login/logout flows.
+Postgres required. The suite covers all resource CRUD endpoints, auth,
+the lead discovery automation, and the content/pipeline tasks.
 
 ```
 tests/
 ├── conftest.py        # fixtures: in-memory DB, test client
-└── test_api.py        # endpoint tests
+├── test_api.py        # endpoint tests
+├── test_automation.py # lead discovery task tests
+└── test_content_pipeline.py  # content generation, channel selection, publishing
 ```
 
 ### Frontend tests
@@ -349,11 +355,12 @@ Run from the `frontend/` directory:
 ```bash
 npm test              # run all tests
 npm test -- --watch   # watch mode
+npm test src/__tests__/admin-products.test.tsx  # single file
 ```
 
 Tests use `jest` + `@testing-library/react` + `next/jest`. API calls are
 mocked. The suite covers the marketing pages, the login flow, and each
-admin page (dashboard, emails, automations, content).
+admin page (dashboard, emails, automations, content, products).
 
 ```
 src/__tests__/
@@ -364,8 +371,59 @@ src/__tests__/
 ├── admin-dashboard.test.tsx
 ├── admin-emails.test.tsx
 ├── admin-automation.test.tsx
-└── admin-content.test.tsx
+├── admin-content.test.tsx
+└── admin-products.test.tsx
 ```
+
+---
+
+## Automated AI Marketing Pipeline
+
+The system includes a **fully automated marketing pipeline** powered by
+Celery workers and the Groq AI API. Once a product is published from the
+admin dashboard, the entire marketing workflow runs in the background
+with zero human interaction.
+
+### How to trigger it
+
+1. Start Docker services (DB + Redis + Frontend):
+   ```bash
+   docker compose up -d db redis
+   ```
+
+2. Start the backend API server:
+   ```bash
+   cd backend
+   uvicorn app.main:app --reload --port 8000
+   ```
+
+3. Start the Celery worker (handles AI content generation, channel
+   selection, and publishing):
+   ```bash
+   celery -A app.core.celery_app:celery_app worker --loglevel=info
+   ```
+
+4. In the admin dashboard, navigate to **Products**, find a product,
+   and click the **"Publish to Marketing"** button.
+
+### Pipeline stages
+
+| Stage | Worker Task | Description |
+|-------|------------|-------------|
+| 1 | `generate_content` | Calls Groq LLM to generate platform-specific marketing copy (Instagram caption, LinkedIn post, Twitter, email) |
+| 2 | `select_channels` | Uses category-based routing rules (business → LinkedIn+email, fashion → Instagram+Pinterest, general → Twitter+TikTok). Falls back to AI estimation for unknown categories. |
+| 3 | `publish_content` | Simulates publishing to each selected platform, creates `PublishLog` entries, marks product as `marketing_status="completed"` |
+
+### Running lead discovery
+
+A standalone automation task for discovering new leads via AI:
+
+```bash
+celery -A app.core.celery_app:celery_app call app.tasks.automation.run_lead_discovery --args='["pod"]'
+```
+
+This discovers 3 plausible prospects for the "AI Pod" product using Groq,
+generates AI reasoning for each, and stores them as Lead records.
 
 ---
 
