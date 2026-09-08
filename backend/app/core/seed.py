@@ -6,6 +6,7 @@ from app.core.database import AsyncSessionLocal
 from app.models.product import Product
 from app.models.email import Email
 from app.models.automation import Automation
+from app.models.content import Content
 
 
 PRODUCTS = [
@@ -129,6 +130,40 @@ AUTOMATIONS = [
 ]
 
 
+CONTENT = [
+    {
+        "id": "B1",
+        "type": "blog_post",
+        "title": "How AI Recruiter cut screening time by 70% for a 3-person hiring team",
+        "status": "published",
+        "date": "Aug 12, 2026",
+        "excerpt": "A short look at how one small team changed their hiring workflow.",
+        "image_url": "",
+        "tag": "Product update",
+    },
+    {
+        "id": "N1",
+        "type": "news_post",
+        "title": "AI Pod passes 500 businesses served across East Africa",
+        "status": "published",
+        "date": "Aug 18, 2026",
+        "excerpt": "More than 500 organisations now use AI Pod for task tracking and reporting.",
+        "image_url": "",
+        "tag": "Company news",
+    },
+    {
+        "id": "Q1",
+        "type": "daily_quote",
+        "title": "The best time to find a customer was yesterday. The second best is with AI Pod.",
+        "status": "published",
+        "date": "Today",
+        "excerpt": "",
+        "image_url": "",
+        "tag": "Quote",
+    },
+]
+
+
 async def seed_products(db: AsyncSession) -> None:
     for product_data in PRODUCTS:
         result = await db.execute(select(Product).where(Product.slug == product_data["slug"]))
@@ -168,6 +203,19 @@ async def seed_automations(db: AsyncSession) -> None:
     await db.commit()
 
 
+async def seed_content(db: AsyncSession) -> None:
+    for content_data in CONTENT:
+        result = await db.execute(select(Content).where(Content.id == content_data["id"]))
+        existing = result.scalar_one_or_none()
+        if existing:
+            for key, value in content_data.items():
+                setattr(existing, key, value)
+        else:
+            content = Content(**content_data)
+            db.add(content)
+    await db.commit()
+
+
 if __name__ == "__main__":
     import asyncio
 
@@ -176,7 +224,9 @@ if __name__ == "__main__":
             await seed_products(db)
             await seed_emails(db)
             await seed_automations(db)
+            await seed_content(db)
 
     asyncio.run(main())
+
 
 

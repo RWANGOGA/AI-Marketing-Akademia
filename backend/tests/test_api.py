@@ -222,3 +222,34 @@ async def test_automations_crud(client: AsyncClient):
     response = await client.patch("/api/automations/auto-1", json={"status": "stopped"})
     assert response.status_code == 200
     assert response.json()["status"] == "stopped"
+
+
+@pytest.mark.anyio
+async def test_content_crud(client: AsyncClient):
+    payload = {
+        "id": "content-1",
+        "type": "blog_post",
+        "title": "Test Blog",
+        "status": "published",
+        "date": "Aug 12, 2026",
+        "excerpt": "Excerpt text",
+        "image_url": "",
+        "tag": "Product update",
+    }
+    response = await client.post("/api/content/", json=payload)
+    assert response.status_code == 201
+    data = response.json()
+    assert data["title"] == "Test Blog"
+    assert data["status"] == "published"
+
+    response = await client.get("/api/content/")
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+
+    response = await client.get("/api/content/content-1")
+    assert response.status_code == 200
+    assert response.json()["excerpt"] == "Excerpt text"
+
+    response = await client.patch("/api/content/content-1", json={"status": "draft"})
+    assert response.status_code == 200
+    assert response.json()["status"] == "draft"

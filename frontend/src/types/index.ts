@@ -66,3 +66,14 @@ export interface Automation {
   last_run: string;
   result: string;
 }
+
+export interface Content {
+  id: string;
+  type: string;
+  title: string;
+  status: string;
+  date: string;
+  excerpt: string;
+  image_url: string;
+  tag: string;
+}
