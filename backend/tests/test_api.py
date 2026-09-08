@@ -194,3 +194,31 @@ async def test_emails_crud(client: AsyncClient):
     response = await client.get("/api/emails/email-1")
     assert response.status_code == 200
     assert response.json()["body"] == "Body text"
+
+
+@pytest.mark.anyio
+async def test_automations_crud(client: AsyncClient):
+    payload = {
+        "id": "auto-1",
+        "name": "Test Automation",
+        "status": "running",
+        "last_run": "Just now",
+        "result": "OK",
+    }
+    response = await client.post("/api/automations/", json=payload)
+    assert response.status_code == 201
+    data = response.json()
+    assert data["name"] == "Test Automation"
+    assert data["status"] == "running"
+
+    response = await client.get("/api/automations/")
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+
+    response = await client.get("/api/automations/auto-1")
+    assert response.status_code == 200
+    assert response.json()["result"] == "OK"
+
+    response = await client.patch("/api/automations/auto-1", json={"status": "stopped"})
+    assert response.status_code == 200
+    assert response.json()["status"] == "stopped"

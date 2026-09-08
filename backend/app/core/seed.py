@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import AsyncSessionLocal
 from app.models.product import Product
 from app.models.email import Email
+from app.models.automation import Automation
 
 
 PRODUCTS = [
@@ -103,6 +104,31 @@ EMAILS = [
 ]
 
 
+AUTOMATIONS = [
+    {
+        "id": "A1",
+        "name": "Lead Discovery — Logistics & Retail Ops EA",
+        "status": "running",
+        "last_run": "12 min ago",
+        "result": "Found 6 new companies, 4 passed duplicate check.",
+    },
+    {
+        "id": "A2",
+        "name": "Lead Analysis",
+        "status": "running",
+        "last_run": "3 min ago",
+        "result": "Analysed 4 leads, matched product for all 4.",
+    },
+    {
+        "id": "A3",
+        "name": "Follow-up Reminder Check",
+        "status": "stopped",
+        "last_run": "Today, 07:00",
+        "result": "Flagged 3 leads with no response after 5 days.",
+    },
+]
+
+
 async def seed_products(db: AsyncSession) -> None:
     for product_data in PRODUCTS:
         result = await db.execute(select(Product).where(Product.slug == product_data["slug"]))
@@ -129,6 +155,19 @@ async def seed_emails(db: AsyncSession) -> None:
     await db.commit()
 
 
+async def seed_automations(db: AsyncSession) -> None:
+    for automation_data in AUTOMATIONS:
+        result = await db.execute(select(Automation).where(Automation.id == automation_data["id"]))
+        existing = result.scalar_one_or_none()
+        if existing:
+            for key, value in automation_data.items():
+                setattr(existing, key, value)
+        else:
+            automation = Automation(**automation_data)
+            db.add(automation)
+    await db.commit()
+
+
 if __name__ == "__main__":
     import asyncio
 
@@ -136,6 +175,8 @@ if __name__ == "__main__":
         async with AsyncSessionLocal() as db:
             await seed_products(db)
             await seed_emails(db)
+            await seed_automations(db)
 
     asyncio.run(main())
+
 

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routers import campaigns, contact, dashboard, emails, leads, products
+from app.api.routers import campaigns, contact, dashboard, emails, leads, products, automations
 from app.core.config import settings
 
 app = FastAPI(title="Akademia AI Marketing System")
@@ -20,6 +20,7 @@ app.include_router(campaigns.router, prefix="/api/campaigns", tags=["campaigns"]
 app.include_router(products.router, prefix="/api/products", tags=["products"])
 app.include_router(contact.router, prefix="/api/contact", tags=["contact"])
 app.include_router(emails.router, prefix="/api/emails", tags=["emails"])
+app.include_router(automations.router, prefix="/api/automations", tags=["automations"])
 
 
 @app.get("/health")

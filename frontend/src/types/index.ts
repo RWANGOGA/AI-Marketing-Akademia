@@ -58,3 +58,11 @@ export interface Email {
   subject: string;
   body: string;
 }
+
+export interface Automation {
+  id: string;
+  name: string;
+  status: string;
+  last_run: string;
+  result: string;
+}
