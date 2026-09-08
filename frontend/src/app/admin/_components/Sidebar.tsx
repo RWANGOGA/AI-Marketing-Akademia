@@ -3,12 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { ICONS } from "../_lib/mockData";
 
 const navItems = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: "📊" },
-  { href: "/admin/leads", label: "Leads", icon: "👥" },
-  { href: "/admin/campaigns", label: "Campaigns", icon: "📢" },
-  { href: "/admin/products", label: "Products", icon: "📦" },
+  { href: "/admin/dashboard", label: "Dashboard", icon: ICONS.dashboard },
+  { href: "/admin/leads", label: "Leads", icon: ICONS.leads },
+  { href: "/admin/campaigns", label: "Campaigns", icon: ICONS.campaigns },
+  { href: "/admin/emails", label: "Emails", icon: ICONS.emails },
+  { href: "/admin/automation", label: "Automation", icon: ICONS.automation },
+  { href: "/admin/products", label: "Products", icon: ICONS.products },
+  { href: "/admin/content", label: "Content", icon: ICONS.content },
+  { href: "/admin/settings", label: "Settings", icon: ICONS.settings },
 ];
 
 export default function AdminSidebar() {
@@ -42,7 +47,10 @@ export default function AdminSidebar() {
                 className={`nav-item ${isActive ? "active" : ""}`}
                 onClick={() => setMobileOpen(false)}
               >
-                <span>{item.icon}</span>
+                <span
+                  className="nav-icon"
+                  dangerouslySetInnerHTML={{ __html: item.icon }}
+                />
                 <span>{item.label}</span>
               </Link>
             );
