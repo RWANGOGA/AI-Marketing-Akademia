@@ -50,7 +50,10 @@ export default function AdminSidebar() {
         </div>
         <div className="nav-foot">v0.9 · Prototype</div>
       </aside>
-      {mobileOpen && <div className="nav-overlay" onClick={() => setMobileOpen(false)} />}
+      <div
+        className={`nav-overlay ${mobileOpen ? "nav-overlay-open" : ""}`}
+        onClick={() => setMobileOpen(false)}
+      />
     </>
   );
 }
