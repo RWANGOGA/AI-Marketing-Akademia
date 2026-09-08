@@ -17,3 +17,8 @@ class Product(Base):
     features: Mapped[list[str]] = mapped_column(JSON, default=list)
     benefits: Mapped[list[str]] = mapped_column(JSON, default=list)
     capabilities: Mapped[list[dict]] = mapped_column(JSON, default=list)
+    category: Mapped[str] = mapped_column(String, default="general")
+    price: Mapped[str] = mapped_column(String, default="")
+    image_url: Mapped[str] = mapped_column(String, default="")
+    marketing_status: Mapped[str] = mapped_column(String, default="pending")
+    marketing_result: Mapped[str] = mapped_column(Text, default="")

@@ -27,6 +27,9 @@ PRODUCTS = [
             {"icon": "report", "title": "Reporting", "body": "Progress is turned into clear reports automatically, no manual compiling."},
             {"icon": "chat", "title": "AI chat", "body": "Ask AI Pod a direct question about your team's work and get a plain answer."},
         ],
+        "category": "business",
+        "price": "Custom",
+        "image_url": "",
     },
     {
         "id": str(uuid.uuid4()),
@@ -43,6 +46,9 @@ PRODUCTS = [
             {"icon": "match", "title": "Candidate insight", "body": "See why a candidate fits a role, not just that they applied."},
             {"icon": "recruiter", "title": "HR workflow", "body": "Built around how HR teams actually review and shortlist people."},
         ],
+        "category": "business",
+        "price": "$299/mo",
+        "image_url": "",
     },
     {
         "id": str(uuid.uuid4()),
@@ -59,6 +65,9 @@ PRODUCTS = [
             {"icon": "spark", "title": "Personalised", "body": "Each interaction adapts to you, not a generic script."},
             {"icon": "chat", "title": "Engaging by design", "body": "Built to be more memorable than a plain chat window."},
         ],
+        "category": "general",
+        "price": "$199/mo",
+        "image_url": "",
     },
     {
         "id": str(uuid.uuid4()),
@@ -75,6 +84,9 @@ PRODUCTS = [
             {"icon": "guide", "title": "Guided tours", "body": "Supports guided, tour-style experiences, not just free roaming."},
             {"icon": "world", "title": "Tourism-ready", "body": "Built to support real tourism and travel-preparation use cases."},
         ],
+        "category": "general",
+        "price": "$99/mo",
+        "image_url": "",
     },
 ]
 
