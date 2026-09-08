@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { ICONS } from "../_lib/mockData";
+import { ICONS } from "./icons";
 
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: ICONS.dashboard },
