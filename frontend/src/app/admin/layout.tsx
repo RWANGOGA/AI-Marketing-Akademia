@@ -16,7 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <b>Admin</b>
           </div>
           <div className="topbar-right">
-            <div className="avatar">JN</div>
+            <div className="avatar">AM</div>
           </div>
         </div>
         <div id="workspace">{children}</div>
