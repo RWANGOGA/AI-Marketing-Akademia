@@ -13,6 +13,11 @@ export interface Product {
     title: string;
     body: string;
   }>;
+  category: string;
+  price: string;
+  image_url: string;
+  marketing_status: string;
+  marketing_result: string;
 }
 
 export type LeadStatus =

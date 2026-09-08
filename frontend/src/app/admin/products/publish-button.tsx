@@ -1,0 +1,52 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
+
+export default function PublishButton({ product }: { product: { slug: string; marketing_status: string } }) {
+  const [status, setStatus] = useState<"idle" | "publishing" | "published" | "error">("idle");
+  const router = useRouter();
+
+  const handlePublish = async () => {
+    setStatus("publishing");
+    try {
+      const res = await fetch(`${API_URL}/products/${product.slug}/publish`, {
+        method: "POST",
+      });
+      if (!res.ok) throw new Error("Failed to publish");
+      setStatus("published");
+      router.refresh();
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  if (product.marketing_status === "completed") {
+    return (
+      <span className="inline-flex rounded-full px-2 py-1 text-xs font-medium bg-green-100 text-green-800">
+        Marketing complete
+      </span>
+    );
+  }
+
+  if (product.marketing_status === "queued" || product.marketing_status === "running") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800">
+        <span className="animate-spin h-2 w-2 border border-current border-t-transparent rounded-full"></span>
+        Running...
+      </span>
+    );
+  }
+
+  return (
+    <button
+      onClick={handlePublish}
+      disabled={status === "publishing"}
+      className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+    >
+      {status === "publishing" ? "Publishing..." : "Publish to Marketing"}
+    </button>
+  );
+}

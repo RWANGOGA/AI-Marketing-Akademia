@@ -1,6 +1,7 @@
 import { apiFetch } from "@/lib/api";
 import type { Product } from "@/types";
 import ProductToggle from "./product-toggle";
+import PublishButton from "./publish-button";
 
 export default async function AdminProductsPage() {
   let products: Product[] = [];
@@ -26,7 +27,9 @@ export default async function AdminProductsPage() {
                 <th className="px-4 py-3 text-left font-medium">Name</th>
                 <th className="px-4 py-3 text-left font-medium">Slug</th>
                 <th className="px-4 py-3 text-left font-medium">Published</th>
+                <th className="px-4 py-3 text-left font-medium">Marketing</th>
                 <th className="px-4 py-3 text-left font-medium">Description</th>
+                <th className="px-4 py-3 text-left font-medium">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -37,8 +40,22 @@ export default async function AdminProductsPage() {
                   <td className="px-4 py-3">
                     <ProductToggle product={product} />
                   </td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                      product.marketing_status === "completed"
+                        ? "bg-green-100 text-green-800"
+                        : product.marketing_status === "queued" || product.marketing_status === "running"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}>
+                      {product.marketing_status || "pending"}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 text-slate-700 max-w-xs truncate">
                     {product.description}
+                  </td>
+                  <td className="px-4 py-3">
+                    <PublishButton product={product} />
                   </td>
                 </tr>
               ))}
