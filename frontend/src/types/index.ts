@@ -49,3 +49,12 @@ export interface Campaign {
   meetings: number;
   customers: number;
 }
+
+export interface Email {
+  id: string;
+  lead_name: string;
+  product_name: string;
+  status: string;
+  subject: string;
+  body: string;
+}

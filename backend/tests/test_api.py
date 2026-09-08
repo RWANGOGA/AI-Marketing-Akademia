@@ -169,3 +169,28 @@ async def test_contact_endpoint(client: AsyncClient):
     assert data["company"] == "Example Inc"
     assert data["contact"] == "Jane Doe"
     assert data["status"] == "new"
+
+
+@pytest.mark.anyio
+async def test_emails_crud(client: AsyncClient):
+    payload = {
+        "id": "email-1",
+        "lead_name": "Acme Corp",
+        "product_name": "AI Pod",
+        "status": "draft",
+        "subject": "Hello",
+        "body": "Body text",
+    }
+    response = await client.post("/api/emails/", json=payload)
+    assert response.status_code == 201
+    data = response.json()
+    assert data["subject"] == "Hello"
+    assert data["status"] == "draft"
+
+    response = await client.get("/api/emails/")
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+
+    response = await client.get("/api/emails/email-1")
+    assert response.status_code == 200
+    assert response.json()["body"] == "Body text"

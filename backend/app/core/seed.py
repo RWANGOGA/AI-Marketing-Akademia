@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import AsyncSessionLocal
 from app.models.product import Product
+from app.models.email import Email
 
 
 PRODUCTS = [
@@ -74,6 +75,34 @@ PRODUCTS = [
 ]
 
 
+EMAILS = [
+    {
+        "id": "E-501",
+        "lead_name": "Kampala FreshFoods Ltd",
+        "product_name": "AI Recruiter",
+        "status": "sent",
+        "subject": "Clearing the hiring backlog at Kampala FreshFoods, Grace",
+        "body": "Hi Grace,\n\nI noticed 4 of your open roles have stayed unfilled for a while — usually a sign that manual CV screening is the bottleneck, not a lack of applicants.\n\nAI Recruiter automatically screens and ranks candidates against the role, so you only spend time on the shortlist, not the pile.\n\nWorth a 15-minute chat this week?\n\nBest,\nAI Pod Team",
+    },
+    {
+        "id": "E-502",
+        "lead_name": "Nile Logistics Group",
+        "product_name": "AI Port",
+        "status": "responded",
+        "subject": "One shared view across all 3 Nile Logistics hubs",
+        "body": "Hi Samuel,\n\nSaw your team is stuck compiling fleet and delivery data by hand across three hubs every week.\n\nAI Port gives every hub a shared task board and turns their combined progress into an automatic report, so head office isn't rebuilding the picture from scratch.\n\nHappy to show you a sample report built from data like yours — interested?\n\nBest,\nAI Pod Team",
+    },
+    {
+        "id": "E-503",
+        "lead_name": "Highland People Solutions",
+        "product_name": "AI Recruiter",
+        "status": "pending",
+        "subject": "Faster shortlists for Highland People Solutions",
+        "body": "Hi Dr. Yusuf,\n\nA few client reviews mention slow turnaround on candidate shortlists — usually a sign of manual screening at scale.\n\nAI Recruiter screens and ranks every applicant automatically, so your recruiters go straight to the strongest candidates.\n\nWould you be open to a quick call to see it in action?\n\nBest,\nAI Pod Team",
+    },
+]
+
+
 async def seed_products(db: AsyncSession) -> None:
     for product_data in PRODUCTS:
         result = await db.execute(select(Product).where(Product.slug == product_data["slug"]))
@@ -87,11 +116,26 @@ async def seed_products(db: AsyncSession) -> None:
     await db.commit()
 
 
+async def seed_emails(db: AsyncSession) -> None:
+    for email_data in EMAILS:
+        result = await db.execute(select(Email).where(Email.id == email_data["id"]))
+        existing = result.scalar_one_or_none()
+        if existing:
+            for key, value in email_data.items():
+                setattr(existing, key, value)
+        else:
+            email = Email(**email_data)
+            db.add(email)
+    await db.commit()
+
+
 if __name__ == "__main__":
     import asyncio
 
     async def main() -> None:
         async with AsyncSessionLocal() as db:
             await seed_products(db)
+            await seed_emails(db)
 
     asyncio.run(main())
+

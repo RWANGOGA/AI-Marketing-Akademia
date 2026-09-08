@@ -29,10 +29,11 @@ describe('AdminDashboard', () => {
 
     render(await DashboardPage());
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('New leads')).toBeInTheDocument();
+    expect(screen.getAllByText('New').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Customers').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('renders pipeline funnel', async () => {
+  it('renders pipeline stages from summary', async () => {
     (apiFetch as jest.Mock)
       .mockResolvedValueOnce({
         new: 10,
@@ -47,8 +48,9 @@ describe('AdminDashboard', () => {
       .mockResolvedValueOnce([]);
 
     render(await DashboardPage());
-    expect(screen.getByText('Discovery')).toBeInTheDocument();
-    expect(screen.getByText('Meeting')).toBeInTheDocument();
+    expect(screen.getAllByText('New').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Contacted').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Meetings').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows needs attention when leads exist', async () => {

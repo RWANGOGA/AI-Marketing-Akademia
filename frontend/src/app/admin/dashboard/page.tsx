@@ -1,25 +1,5 @@
 import { apiFetch } from "@/lib/api";
-import type { Lead, LeadStatus } from "@/types";
-
-const statusStyles: Record<LeadStatus, string> = {
-  new: "pill-new",
-  contacted: "pill-contacted",
-  responded: "pill-responded",
-  "needs-followup": "pill-followup",
-  meeting: "pill-meeting",
-  customer: "pill-customer",
-  lost: "pill-lost",
-};
-
-const statusLabels: Record<LeadStatus, string> = {
-  new: "New",
-  contacted: "Contacted",
-  responded: "Responded",
-  "needs-followup": "Needs Follow-up",
-  meeting: "Meeting",
-  customer: "Customer",
-  lost: "Lost",
-};
+import type { Lead } from "@/types";
 
 type DashboardSummary = {
   new: number;
@@ -71,11 +51,10 @@ export default async function DashboardPage() {
   const pausedAutomations = campaigns.filter((c) => c.status === "paused").length;
   const completedAutomations = campaigns.filter((c) => c.status === "completed").length;
 
-  const statCard = (label: string, num: number, delta: string) => (
+  const statCard = (label: string, num: number) => (
     <div className="card stat-card">
       <div className="label">{label}</div>
       <div className="num">{num}</div>
-      <div className="delta">{delta}</div>
     </div>
   );
 
@@ -93,51 +72,39 @@ export default async function DashboardPage() {
       <div className="view-header">
         <div>
           <h1>Dashboard</h1>
-          <p>Here&apos;s what&apos;s happening across marketing right now.</p>
+          <p>Marketing overview</p>
         </div>
       </div>
 
       <div className="stat-row">
-        {statCard("New leads", summary.new, "discovered this week")}
-        {statCard("Contacted", summary.contacted, "have received outreach")}
-        {statCard("Responded", summary.responded, "replied to a message")}
-        {statCard("Meetings", summary.meetings, "booked or held")}
-        {statCard("Customers won", summary.customers, "converted this quarter")}
+        {statCard("New", summary.new)}
+        {statCard("Contacted", summary.contacted)}
+        {statCard("Responded", summary.responded)}
+        {statCard("Meetings", summary.meetings)}
+        {statCard("Customers", summary.customers)}
       </div>
 
       <div className="card pipeline">
-        {pipelineStage(String(summary.new), "Discovery")}
+        {pipelineStage(String(summary.new), "New")}
         {pipelineLine()}
-        {pipelineStage(String(summary.contacted), "Analysis")}
-        {pipelineLine()}
-        {pipelineStage(String(summary.responded), "Pitch drafted")}
-        {pipelineLine()}
-        {pipelineStage(String(summary.meetings), "Approved")}
-        {pipelineLine()}
-        {pipelineStage(String(summary.customers), "Sent")}
+        {pipelineStage(String(summary.contacted), "Contacted")}
         {pipelineLine()}
         {pipelineStage(String(summary.responded), "Responded")}
         {pipelineLine()}
-        {pipelineStage(String(summary.meetings), "Meeting")}
+        {pipelineStage(String(summary.meetings), "Meetings")}
         {pipelineLine()}
-        {pipelineStage(String(summary.customers), "Customer")}
+        {pipelineStage(String(summary.customers), "Customers")}
       </div>
 
       <div className="dash-grid">
         <div className="card pad">
-          <div className="section-title">
-            Needs your attention
-          </div>
+          <div className="section-title">Needs your attention</div>
           {needsAttention.length > 0 ? needsAttention.map((l) => (
             <div className="attn-row" key={l.id}>
               <div className="attn-dot"></div>
               <div>
                 <div className="co">{l.company}</div>
-                <div className="why">
-                  {l.status === "needs-followup"
-                    ? `No response in ${l.last_contact || "awhile"} — ready for follow-up`
-                    : "New lead — pitch not yet generated"}
-                </div>
+                <div className="why">{l.status === "needs-followup" ? "Needs follow-up" : "New lead"}</div>
               </div>
             </div>
           )) : (
