@@ -7,6 +7,8 @@ from app.models.product import Product
 from app.models.email import Email
 from app.models.automation import Automation
 from app.models.content import Content
+from app.models.user import User
+from app.core.auth import hash_password
 
 
 PRODUCTS = [
@@ -216,6 +218,24 @@ async def seed_content(db: AsyncSession) -> None:
     await db.commit()
 
 
+async def seed_users(db: AsyncSession) -> None:
+    admin_email = "admin@akademia.local"
+    admin_password = "admin123"
+    result = await db.execute(select(User).where(User.id == admin_email))
+    if not result.scalar_one_or_none():
+        db.add(
+            User(
+                id=admin_email,
+                email=admin_email,
+                name="Admin",
+                hashed_password=hash_password(admin_password),
+                is_active=True,
+                is_superuser=True,
+            )
+        )
+    await db.commit()
+
+
 if __name__ == "__main__":
     import asyncio
 
@@ -225,6 +245,7 @@ if __name__ == "__main__":
             await seed_emails(db)
             await seed_automations(db)
             await seed_content(db)
+            await seed_users(db)
 
     asyncio.run(main())
 

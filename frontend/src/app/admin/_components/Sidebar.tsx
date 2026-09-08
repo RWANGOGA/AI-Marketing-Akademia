@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import { useAuth } from "./auth-context";
 import { ICONS } from "./icons";
 
 const navItems = [
@@ -18,6 +19,8 @@ const navItems = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -56,7 +59,18 @@ export default function AdminSidebar() {
             );
           })}
         </div>
-        <div className="nav-foot">v0.9 · Prototype</div>
+        <div className="nav-foot">
+          <div>{user?.email ?? "Not signed in"}</div>
+          <button
+            className="nav-item"
+            onClick={() => {
+              logout();
+              router.push("/admin/login");
+            }}
+          >
+            Logout
+          </button>
+        </div>
       </aside>
       <div
         className={`nav-overlay ${mobileOpen ? "nav-overlay-open" : ""}`}

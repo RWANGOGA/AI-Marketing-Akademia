@@ -253,3 +253,33 @@ async def test_content_crud(client: AsyncClient):
     response = await client.patch("/api/content/content-1", json={"status": "draft"})
     assert response.status_code == 200
     assert response.json()["status"] == "draft"
+
+
+@pytest.mark.anyio
+async def test_auth_register_and_login(client: AsyncClient):
+    payload = {
+        "email": "admin@example.com",
+        "name": "Admin User",
+        "password": "strongpass",
+    }
+    response = await client.post("/api/auth/register", json=payload)
+    assert response.status_code == 201
+    data = response.json()
+    assert data["email"] == "admin@example.com"
+    assert "id" in data
+
+    response = await client.post("/api/auth/login", data={"username": "admin@example.com", "password": "strongpass"})
+    assert response.status_code == 200
+    token = response.json()
+    assert token["token_type"] == "bearer"
+    assert "access_token" in token
+
+    response = await client.get("/api/auth/me", headers={"Authorization": f"Bearer {token['access_token']}"})
+    assert response.status_code == 200
+    assert response.json()["email"] == "admin@example.com"
+
+
+@pytest.mark.anyio
+async def test_auth_login_wrong_password(client: AsyncClient):
+    response = await client.post("/api/auth/login", data={"username": "admin@example.com", "password": "wrong"})
+    assert response.status_code == 400

@@ -1,12 +1,16 @@
+"use client";
+
 import type { Metadata } from "next";
 import "./admin.css";
 import AdminSidebar from "./_components/Sidebar";
+import { AuthProvider, useAuth } from "./_components/auth-context";
+import RequireAuth from "./_components/RequireAuth";
 
 export const metadata: Metadata = {
   title: "Admin | AI Marketer",
 };
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   return (
     <div className="admin-body">
       <AdminSidebar />
@@ -19,8 +23,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="avatar">AM</div>
           </div>
         </div>
-        <div id="workspace">{children}</div>
+        <RequireAuth>
+          <div id="workspace">{children}</div>
+        </RequireAuth>
       </div>
     </div>
+  );
+}
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <AuthProvider>
+      <AdminLayoutInner>{children}</AdminLayoutInner>
+    </AuthProvider>
   );
 }
